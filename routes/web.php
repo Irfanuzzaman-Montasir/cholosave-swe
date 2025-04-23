@@ -9,12 +9,10 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 
 // Main Pages
 Route::get('/', function () {
-    if (auth()->check()) {
-        return view('welcome', ['user' => auth()->user()]);
-    }
     return view('welcome');
 })->name('home');
 
@@ -54,4 +52,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/investments/create', [InvestmentController::class, 'create'])->name('investments.create');
     Route::post('/investments', [InvestmentController::class, 'store'])->name('investments.store');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
+});
+
+// Admin Routes
+Route::prefix('admin')->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin'])->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    
+    // Expert Team Routes
+    Route::get('/experts', [App\Http\Controllers\Admin\ExpertController::class, 'index'])->name('admin.experts.index');
+    Route::get('/experts/create', [App\Http\Controllers\Admin\ExpertController::class, 'create'])->name('admin.experts.create');
+    Route::post('/experts', [App\Http\Controllers\Admin\ExpertController::class, 'store'])->name('admin.experts.store');
+    Route::get('/experts/{expert}/edit', [App\Http\Controllers\Admin\ExpertController::class, 'edit'])->name('admin.experts.edit');
+    Route::put('/experts/{expert}', [App\Http\Controllers\Admin\ExpertController::class, 'update'])->name('admin.experts.update');
+    Route::delete('/experts/{expert}', [App\Http\Controllers\Admin\ExpertController::class, 'destroy'])->name('admin.experts.destroy');
+    
+    // Contact Messages Routes
+    Route::get('/contacts', [App\Http\Controllers\Admin\ContactController::class, 'index'])->name('admin.contacts.index');
+    Route::delete('/contacts/{contact}', [App\Http\Controllers\Admin\ContactController::class, 'destroy'])->name('admin.contacts.destroy');
 });

@@ -43,6 +43,11 @@
                     <input type="password" class="form-input" id="password" name="password" placeholder="Enter your password" required>
                 </div>
 
+                <div class="mb-4 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                    <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+
                 <button type="submit" class="login-button">
                     Login
                 </button>
@@ -167,22 +172,6 @@
     }
 
     .register-link a:hover {
-        text-decoration: underline;
-    }
-
-    .forgot-password-link {
-        text-align: right;
-        margin-top: 0.5rem;
-    }
-
-    .forgot-password-link a {
-        color: #1E40AF;
-        text-decoration: none;
-        font-size: 0.875rem;
-        font-weight: 500;
-    }
-
-    .forgot-password-link a:hover {
         text-decoration: underline;
     }
 
