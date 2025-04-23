@@ -9,6 +9,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
+use App\Http\Controllers\ForumController;
+use App\Http\Controllers\LeaderboardController;
 
 // Main Pages
 Route::get('/', function () {
@@ -54,4 +56,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/investments/create', [InvestmentController::class, 'create'])->name('investments.create');
     Route::post('/investments', [InvestmentController::class, 'store'])->name('investments.store');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
+    
+     // Profile Routes
+     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile');
+     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+ 
+     // Community Routes
+     Route::get('/community/leaderboard', [LeaderboardController::class, 'index'])->name('leaderboard');
+     
+     // Forum Routes
+     Route::get('/community/forum', [ForumController::class, 'index'])->name('forum.index');
+     Route::get('/community/forum/my-questions', [ForumController::class, 'myQuestions'])->name('forum.my-questions');
+     Route::get('/community/forum/question/{question}', [ForumController::class, 'show'])->name('forum.question');
+     Route::post('/community/forum/question', [ForumController::class, 'store'])->name('forum.store');
+     Route::post('/community/forum/reply', [ForumController::class, 'storeReply'])->name('forum.reply.store');
+     Route::delete('/community/forum/question/{question}', [ForumController::class, 'destroy'])->name('forum.destroy');
+     Route::patch('/community/forum/question/{question}', [ForumController::class, 'update'])->name('forum.update');
 });
