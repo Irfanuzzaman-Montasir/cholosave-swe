@@ -10,11 +10,6 @@
             <h1>Welcome back, {{ $user->name }}! 👋</h1>
             <p class="subtitle">Your financial journey continues here</p>
         </div>
-        <div class="welcome-images">
-            <img src="/images/finance-1.jpg" alt="Financial Growth" class="welcome-image">
-            <img src="/images/finance-2.jpg" alt="Community" class="welcome-image">
-            <img src="/images/finance-3.jpg" alt="Investment" class="welcome-image">
-        </div>
     </div>
 </div>
 
@@ -47,26 +42,6 @@
     font-size: 1.5rem;
     color: #6B7280;
 }
-
-.welcome-images {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 3rem;
-}
-
-.welcome-image {
-    width: 100%;
-    height: 250px;
-    object-fit: cover;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-}
-
-.welcome-image:hover {
-    transform: translateY(-5px);
-}
 </style>
 @else
 <div class="welcome-container">
@@ -85,21 +60,21 @@
                 <div class="slide-content">
                     <h3>Smart Savings</h3>
                     <p>Automate your savings and watch your money grow</p>
-                    <img src="https://static.vecteezy.com/system/resources/thumbnails/055/229/342/small/saving-coins-in-a-glass-jar-labeled-for-financial-goals-at-home-in-soft-ambient-light-free-photo.jpeg" alt="Smart Savings">
+                    <img src="{{ asset('images/carousel/savings.jpg') }}" alt="Smart Savings" class="carousel-image">
                 </div>
             </div>
             <div class="carousel-slide">
                 <div class="slide-content">
                     <h3>Investment Tools</h3>
                     <p>Access powerful tools to grow your wealth</p>
-                    <img src="/images/investment.jpg" alt="Investment Tools">
+                    <img src="{{ asset('images/carousel/investment.jpg') }}" alt="Investment Tools" class="carousel-image">
                 </div>
             </div>
             <div class="carousel-slide">
                 <div class="slide-content">
                     <h3>Financial Education</h3>
                     <p>Learn from experts and make informed decisions</p>
-                    <img src="/images/education.jpg" alt="Financial Education">
+                    <img src="{{ asset('images/carousel/education.jpg') }}" alt="Financial Education" class="carousel-image">
                 </div>
             </div>
         </div>
@@ -111,27 +86,29 @@
 
 <style>
 .welcome-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    min-height: calc(100vh - 5rem);
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    position: relative;
 }
 
 .hero-section {
     text-align: center;
-    margin-bottom: 3rem;
+    padding: 4rem 2rem;
+    background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
+    color: white;
 }
 
 .hero-section h1 {
-    font-size: 3rem;
-    color: #1E40AF;
+    font-size: 3.5rem;
     margin-bottom: 1rem;
 }
 
 .hero-section p {
     font-size: 1.5rem;
-    color: #6B7280;
     margin-bottom: 2rem;
+    opacity: 0.9;
 }
 
 .cta-buttons {
@@ -149,13 +126,14 @@
 }
 
 .btn-primary {
-    background-color: #1E40AF;
-    color: white;
+    background-color: white;
+    color: #1E40AF;
 }
 
 .btn-secondary {
-    background-color: #E5E7EB;
-    color: #1F2937;
+    background-color: transparent;
+    color: white;
+    border: 2px solid white;
 }
 
 .btn-primary:hover, .btn-secondary:hover {
@@ -165,44 +143,79 @@
 
 .carousel-container {
     position: relative;
-    max-width: 800px;
-    margin: 0 auto;
+    width: 100%;
+    height: calc(100vh - 300px);
     overflow: hidden;
-    border-radius: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background: #f4f7f9;
 }
 
 .carousel {
     display: flex;
+    height: 100%;
     transition: transform 0.5s ease-in-out;
 }
 
 .carousel-slide {
     min-width: 100%;
-    padding: 2rem;
-    background-color: white;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
 }
 
 .slide-content {
     text-align: center;
+    max-width: 800px;
+    padding: 2rem;
+    position: relative;
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 1s ease forwards;
 }
 
 .slide-content h3 {
-    font-size: 1.5rem;
-    color: #1E40AF;
-    margin-bottom: 1rem;
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 1.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .slide-content p {
-    color: #6B7280;
-    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+    color: white;
+    line-height: 1.6;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-.slide-content img {
+.carousel-image {
+    position: absolute;
+    inset: 0;
     width: 100%;
-    max-height: 300px;
+    height: 100%;
     object-fit: cover;
-    border-radius: 0.5rem;
+    object-position: center;
+    filter: brightness(0.4);
+    transform: scale(1.1);
+    transition: transform 0.5s ease;
+}
+
+.carousel-slide:hover .carousel-image {
+    transform: scale(1);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .carousel-button {
@@ -217,6 +230,7 @@
     font-size: 1.5rem;
     color: #1E40AF;
     transition: all 0.3s ease;
+    z-index: 3;
 }
 
 .carousel-button:hover {
@@ -225,33 +239,58 @@
 }
 
 .prev {
-    left: 1rem;
+    left: 2rem;
 }
 
 .next {
-    right: 1rem;
+    right: 2rem;
 }
 
 .carousel-dots {
     position: absolute;
-    bottom: 1rem;
+    bottom: 2rem;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 0.5rem;
+    z-index: 3;
 }
 
 .dot {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(30, 64, 175, 0.5);
     cursor: pointer;
     transition: all 0.3s ease;
 }
 
 .dot.active {
-    background: white;
+    background: #1E40AF;
+    transform: scale(1.2);
+}
+
+@media (max-width: 768px) {
+    .hero-section h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section p {
+        font-size: 1.25rem;
+    }
+    
+    .slide-content h3 {
+        font-size: 2rem;
+    }
+    
+    .slide-content p {
+        font-size: 1.1rem;
+    }
+    
+    .carousel-button {
+        padding: 0.75rem;
+        font-size: 1.25rem;
+    }
 }
 </style>
 
@@ -261,6 +300,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const slides = document.querySelectorAll('.carousel-slide');
     const dotsContainer = document.querySelector('.carousel-dots');
     let currentSlide = 0;
+    let autoSlideInterval;
 
     // Create dots
     slides.forEach((_, index) => {
@@ -283,6 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function goToSlide(slideIndex) {
         currentSlide = slideIndex;
         updateCarousel();
+        resetAutoSlide();
     }
 
     function nextSlide() {
@@ -295,12 +336,28 @@ document.addEventListener('DOMContentLoaded', function() {
         updateCarousel();
     }
 
-    // Add event listeners to buttons
-    document.querySelector('.next').addEventListener('click', nextSlide);
-    document.querySelector('.prev').addEventListener('click', prevSlide);
+    function startAutoSlide() {
+        autoSlideInterval = setInterval(nextSlide, 5000);
+    }
 
-    // Auto-advance slides every 5 seconds
-    setInterval(nextSlide, 5000);
+    function resetAutoSlide() {
+        clearInterval(autoSlideInterval);
+        startAutoSlide();
+    }
+
+    // Add event listeners to buttons
+    document.querySelector('.next').addEventListener('click', () => {
+        nextSlide();
+        resetAutoSlide();
+    });
+    
+    document.querySelector('.prev').addEventListener('click', () => {
+        prevSlide();
+        resetAutoSlide();
+    });
+
+    // Start auto-sliding
+    startAutoSlide();
 });
 </script>
 @endauth

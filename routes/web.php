@@ -41,17 +41,26 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
     Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
     
-    // Groups Routes
-    Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
+    // Group Routes
     Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::get('/groups/{group}', [GroupController::class, 'show'])->name('groups.show');
+    Route::get('/groups/admin/{groupId}', [GroupController::class, 'adminDashboard'])->name('groups.admin.dashboard');
+    Route::get('/my-groups', [GroupController::class, 'myGroups'])->name('groups.my');
+    Route::get('/join-groups', [GroupController::class, 'joinGroups'])->name('groups.join');
+    Route::post('/groups/{groupId}/join', [GroupController::class, 'joinGroup'])->name('groups.join.request');
     
     // Investments Routes
     Route::get('/investments', [InvestmentController::class, 'index'])->name('investments.index');
     Route::get('/investments/create', [InvestmentController::class, 'create'])->name('investments.create');
     Route::post('/investments', [InvestmentController::class, 'store'])->name('investments.store');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
+
+    // Group Dashboard Routes
+    Route::get('/groups/{groupId}/admin-dashboard', [GroupController::class, 'adminDashboard'])->name('groups.admin_dashboard');
+    Route::get('/groups/{groupId}/member/dashboard', [GroupController::class, 'memberDashboard'])->name('groups.member.dashboard');
+    Route::get('/groups/{groupId}/enter', [GroupController::class, 'enterGroup'])->name('groups.enter');
 });
