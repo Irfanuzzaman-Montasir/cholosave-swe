@@ -90,6 +90,20 @@
         .history-submenu {
             padding-left: 2rem;
             display: none;
+            position: relative;
+        }
+        .history-submenu::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #E5E7EB;
+            border-radius: 2px;
+        }
+        .dark-mode .history-submenu::before {
+            background-color: #2d3748;
         }
         .history-submenu.show {
             display: block;

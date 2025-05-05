@@ -95,6 +95,33 @@
             letter-spacing: 1px;
             margin: 1.2rem 0 0.5rem 1rem;
         }
+        .submenu {
+            padding-left: 2rem;
+            display: none;
+            position: relative;
+        }
+        .submenu::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #E5E7EB;
+            border-radius: 2px;
+        }
+        .dark-mode .submenu::before {
+            background-color: #2d3748;
+        }
+        .submenu.show {
+            display: block;
+        }
+        .submenu-chevron {
+            transition: transform 0.2s ease;
+        }
+        .submenu-chevron.rotated {
+            transform: rotate(180deg);
+        }
         .sidebar .nav-link.text-danger {
             color: #ff4d4f !important;
         }
@@ -193,15 +220,78 @@
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-chart-line"></i>Dashboard</a></li>
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-bell"></i>Activity alert</a></li>
                 <div class="sidebar-section-title">Financial Management</div>
-                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-hand-holding-dollar"></i>Loans <i class="fas fa-chevron-down ms-auto"></i></a></li>
-                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-credit-card"></i>Payments <i class="fas fa-chevron-down ms-auto"></i></a></li>
-                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-piggy-bank"></i>Investments <i class="fas fa-chevron-down ms-auto"></i></a></li>
+                <li class="nav-item">
+                    <div class="nav-link" id="loansToggle">
+                        <i class="fas fa-hand-holding-dollar"></i>
+                        <span>Loans</span>
+                        <i class="fas fa-chevron-down ms-auto submenu-chevron"></i>
+                    </div>
+                    <div class="submenu">
+                        <a href="#" class="nav-link"><span>Request Loan</span></a>
+                        <a href="#" class="nav-link"><span>My Loans</span></a>
+                        <a href="#" class="nav-link"><span>Member Loans</span></a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" id="paymentsToggle">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payments</span>
+                        <i class="fas fa-chevron-down ms-auto submenu-chevron"></i>
+                    </div>
+                    <div class="submenu">
+                        <a href="#" class="nav-link"><span>Make Payment</span></a>
+                        <a href="#" class="nav-link"><span>My Payment History</span></a>
+                        <a href="#" class="nav-link"><span>Member Payment</span></a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" id="investmentsToggle">
+                        <i class="fas fa-piggy-bank"></i>
+                        <span>Investments</span>
+                        <i class="fas fa-chevron-down ms-auto submenu-chevron"></i>
+                    </div>
+                    <div class="submenu">
+                        <a href="#" class="nav-link"><span>New Investment</span></a>
+                        <a href="#" class="nav-link"><span>Record Return</span></a>
+                        <a href="#" class="nav-link"><span>Investment History</span></a>
+                    </div>
+                </li>
                 <div class="sidebar-section-title">Group Management</div>
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-users"></i>Members</a></li>
-                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-calendar-day"></i>Leave <i class="fas fa-chevron-down ms-auto"></i></a></li>
-                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-wallet"></i>Withdraw <i class="fas fa-chevron-down ms-auto"></i></a></li>
+                <li class="nav-item">
+                    <div class="nav-link" id="leaveToggle">
+                        <i class="fas fa-calendar-day"></i>
+                        <span>Leave</span>
+                        <i class="fas fa-chevron-down ms-auto submenu-chevron"></i>
+                    </div>
+                    <div class="submenu">
+                        <a href="#" class="nav-link"><span>Request For Me</span></a>
+                        <a href="#" class="nav-link"><span>Member Requests</span></a>
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <div class="nav-link" id="withdrawToggle">
+                        <i class="fas fa-wallet"></i>
+                        <span>Withdraw</span>
+                        <i class="fas fa-chevron-down ms-auto submenu-chevron"></i>
+                    </div>
+                    <div class="submenu">
+                        <a href="#" class="nav-link"><span>Request For Me</span></a>
+                        <a href="#" class="nav-link"><span>Member Request</span></a>
+                    </div>
+                </li>
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-comments"></i>Chats</a></li>
-                <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-poll"></i>Polls <i class="fas fa-chevron-down ms-auto"></i></a></li>
+                <li class="nav-item">
+                    <div class="nav-link" id="pollsToggle">
+                        <i class="fas fa-poll"></i>
+                        <span>Polls</span>
+                        <i class="fas fa-chevron-down ms-auto submenu-chevron"></i>
+                    </div>
+                    <div class="submenu">
+                        <a href="#" class="nav-link"><span>Create Poll</span></a>
+                        <a href="#" class="nav-link"><span>View Polls</span></a>
+                    </div>
+                </li>
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-user-plus"></i>Join Request</a></li>
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fas fa-cogs"></i>Settings</a></li>
                 <li class="nav-item"><a href="#" class="nav-link"><i class="fa-solid fa-file-lines"></i>Generate Report</a></li>
@@ -241,6 +331,19 @@
                     themeText.textContent = 'Dark Mode';
                 }
             }
+
+            const submenuToggles = ['loansToggle', 'paymentsToggle', 'investmentsToggle', 'leaveToggle', 'withdrawToggle', 'pollsToggle'];
+            
+            submenuToggles.forEach(toggleId => {
+                const toggle = document.getElementById(toggleId);
+                const submenu = toggle.nextElementSibling;
+                const chevron = toggle.querySelector('.submenu-chevron');
+
+                toggle.addEventListener('click', () => {
+                    submenu.classList.toggle('show');
+                    chevron.classList.toggle('rotated');
+                });
+            });
         });
     </script>
 </body>
