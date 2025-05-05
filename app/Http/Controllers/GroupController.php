@@ -73,7 +73,7 @@ class GroupController extends Controller
             ->where('is_admin', true)
             ->firstOrFail();
 
-        return view('groups.admin_dashboard', compact('group', 'membership'));
+        return view('groups.admin.dashboard', compact('group', 'membership'));
     }
 
     public function memberDashboard($groupId)
