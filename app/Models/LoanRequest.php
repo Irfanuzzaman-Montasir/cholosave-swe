@@ -9,6 +9,8 @@ class LoanRequest extends Model
 {
     use HasFactory;
 
+    protected $table = 'loan_request';  // Specify the correct table name
+
     public $timestamps = true;
 
     protected $fillable = [

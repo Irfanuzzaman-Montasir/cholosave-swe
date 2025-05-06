@@ -7,6 +7,8 @@ use App\Models\GroupMembership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
+use App\Models\User;
+use App\Models\Savings;
 
 class GroupController extends Controller
 {
@@ -209,9 +211,33 @@ class GroupController extends Controller
             ->firstOrFail();
 
         if ($membership->is_admin) {
-            return redirect()->route('groups.admin_dashboard', $group->group_id);
+            return redirect()->route('groups.admin.dashboard', $group->group_id);
         } else {
             return redirect()->route('groups.member.dashboard', $group->group_id);
         }
+    }
+
+    public function members($groupId)
+    {
+        $memberships = GroupMembership::with('user')
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->get();
+
+        $members = $memberships->map(function($membership) use ($groupId) {
+            $contribution = Savings::where('group_id', $groupId)
+                ->where('user_id', $membership->user_id)
+                ->sum('amount');
+            return [
+                'name' => $membership->user->name,
+                'join_date' => $membership->created_at,
+                'contribution' => $contribution,
+                'remaining_installment' => $membership->time_period_remaining,
+            ];
+        });
+
+        $group = \App\Models\MyGroup::findOrFail($groupId);
+
+        return view('groups.member.members', compact('group', 'members'));
     }
 } 

@@ -9,6 +9,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
+use App\Http\Controllers\LoanRequestController;
+use App\Http\Controllers\WithdrawalController;
 
 // Main Pages
 Route::get('/', function () {
@@ -47,11 +49,29 @@ Route::middleware(['auth'])->group(function () {
     // Group Routes
     Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
-    Route::get('/groups/{group}', [GroupController::class, 'show'])->name('groups.show');
-    Route::get('/groups/admin/{groupId}', [GroupController::class, 'adminDashboard'])->name('groups.admin.dashboard');
     Route::get('/my-groups', [GroupController::class, 'myGroups'])->name('groups.my');
     Route::get('/join-groups', [GroupController::class, 'joinGroups'])->name('groups.join');
-    Route::post('/groups/{groupId}/join', [GroupController::class, 'joinGroup'])->name('groups.join.request');
+    
+    // Group-specific routes
+    Route::prefix('groups/{groupId}')->group(function () {
+        Route::get('/', [GroupController::class, 'show'])->name('groups.show');
+        Route::post('/join', [GroupController::class, 'joinGroup'])->name('groups.join.request');
+        Route::get('/enter', [GroupController::class, 'enterGroup'])->name('groups.enter');
+        
+        // Admin routes
+        Route::middleware([\App\Http\Middleware\GroupAdminMiddleware::class])->group(function () {
+            Route::get('/admin-dashboard', [GroupController::class, 'adminDashboard'])->name('groups.admin.dashboard');
+            Route::get('/loan-request', [LoanRequestController::class, 'create'])->name('admin.loan.request.create');
+            Route::post('/loan-request', [LoanRequestController::class, 'store'])->name('admin.loan.request.store');
+        });
+        
+        // Member routes
+        Route::get('/member/dashboard', [GroupController::class, 'memberDashboard'])->name('groups.member.dashboard');
+        Route::get('/member/loan-request', [LoanRequestController::class, 'create'])->name('member.loan.request.create');
+        Route::post('/member/loan-request', [LoanRequestController::class, 'store'])->name('member.loan.request.store');
+        Route::get('/member/withdrawal-request', [WithdrawalController::class, 'create'])->name('member.withdrawal.request.create');
+        Route::post('/member/withdrawal-request', [WithdrawalController::class, 'store'])->name('member.withdrawal.request.store');
+    });
     
     // Investments Routes
     Route::get('/investments', [InvestmentController::class, 'index'])->name('investments.index');
@@ -59,8 +79,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/investments', [InvestmentController::class, 'store'])->name('investments.store');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
 
-    // Group Dashboard Routes
-    Route::get('/groups/{groupId}/admin-dashboard', [GroupController::class, 'adminDashboard'])->name('groups.admin_dashboard');
-    Route::get('/groups/{groupId}/member/dashboard', [GroupController::class, 'memberDashboard'])->name('groups.member.dashboard');
-    Route::get('/groups/{groupId}/enter', [GroupController::class, 'enterGroup'])->name('groups.enter');
+    // Group Members Route
+    Route::get('/groups/{group}/members', [GroupController::class, 'members'])->name('groups.members');
 });

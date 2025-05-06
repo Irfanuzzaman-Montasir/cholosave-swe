@@ -4,10 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title')</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
         body {
+            font-family: 'Poppins', sans-serif;
             overflow-x: hidden;
         }
         .sidebar {
@@ -186,7 +188,37 @@
             background-color: #1a1a1a;
             color: #ffffff;
         }
+
+        /* Force main content to always be light mode */
+        .force-light, .force-light * {
+            background-color: #fff !important;
+            color: #111 !important;
+            border-color: #e5e7eb !important;
+        }
+        .force-light table {
+            background-color: #fff !important;
+        }
+        .force-light th, .force-light td {
+            background-color: #fff !important;
+            color: #111 !important;
+        }
+        .force-light .bg-gray-50 {
+            background-color: #f9fafb !important;
+        }
+        .force-light .bg-white {
+            background-color: #fff !important;
+        }
+        .force-light .text-gray-900 {
+            color: #111 !important;
+        }
+        .force-light .text-gray-500 {
+            color: #6b7280 !important;
+        }
+        .force-light .border-gray-200 {
+            border-color: #e5e7eb !important;
+        }
     </style>
+    @stack('styles')
 </head>
 <body>
     <!-- Sidebar -->
@@ -218,7 +250,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('member.loan.request.create', $group->group_id) }}" class="nav-link">
                         <i class="fas fa-hand-holding-dollar"></i>
                         <span>Loan Request</span>
                     </a>
@@ -231,7 +263,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('groups.members', $group->group_id) }}" class="nav-link">
                         <i class="fas fa-users"></i>
                         <span>Members</span>
                     </a>
@@ -270,7 +302,7 @@
                 </li>
 
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('member.withdrawal.request.create', $group->group_id) }}" class="nav-link">
                         <i class="fas fa-wallet"></i>
                         <span>Withdraw Request</span>
                     </a>
@@ -306,87 +338,41 @@
     </div>
 
     <!-- Main Content -->
-    <div class="main-content">
+    <div class="main-content force-light">
         @yield('content')
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    @stack('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // History submenu toggle
-            const historyToggle = document.getElementById('historyToggle');
-            const historySubmenu = document.querySelector('.history-submenu');
-            const historyChevron = document.querySelector('.history-chevron');
+        // Dark mode toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = themeToggle.querySelector('i');
+        const themeText = themeToggle.querySelector('span');
+        
+        // Check for saved theme preference
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeIcon.classList.remove('fa-moon');
+            themeIcon.classList.add('fa-sun');
+            themeText.textContent = 'Light Mode';
+        }
 
-            historyToggle.addEventListener('click', () => {
-                historySubmenu.classList.toggle('show');
-                historyChevron.classList.toggle('rotated');
-            });
-
-            // Theme toggle
-            const themeToggle = document.getElementById('themeToggle');
-            const themeIcon = themeToggle.querySelector('i');
-            const themeText = themeToggle.querySelector('span');
-            let isDarkMode = localStorage.getItem('darkMode') === 'true';
-            updateTheme();
-
-            themeToggle.addEventListener('click', () => {
-                isDarkMode = !isDarkMode;
-                localStorage.setItem('darkMode', isDarkMode);
-                updateTheme();
-            });
-
-            function updateTheme() {
-                if (isDarkMode) {
-                    document.body.classList.add('dark-mode');
-                    themeIcon.classList.replace('fa-moon', 'fa-sun');
-                    themeText.textContent = 'Light Mode';
-                } else {
-                    document.body.classList.remove('dark-mode');
-                    themeIcon.classList.replace('fa-sun', 'fa-moon');
-                    themeText.textContent = 'Dark Mode';
-                }
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            
+            // Update icon and text
+            if (document.body.classList.contains('dark-mode')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+                themeText.textContent = 'Light Mode';
+                localStorage.setItem('theme', 'dark');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+                themeText.textContent = 'Dark Mode';
+                localStorage.setItem('theme', 'light');
             }
-
-            // Leave request functionality
-            document.getElementById('leaveRequestBtn').addEventListener('click', function(e) {
-                e.preventDefault();
-                Swal.fire({
-                    title: 'Leave Group',
-                    text: 'Are you sure you want to leave this group?',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, leave group',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Handle leave request
-                        Swal.fire({
-                            title: 'Processing...',
-                            html: 'Please wait while we process your request',
-                            allowOutsideClick: false,
-                            didOpen: () => {
-                                Swal.showLoading();
-                            }
-                        });
-                    }
-                });
-            });
-
-            // Check for unread messages
-            function checkUnreadMessages() {
-                // Implement your message checking logic here
-                const unreadCount = document.getElementById('unreadCount');
-                // Example: unreadCount.style.display = 'block';
-                // unreadCount.textContent = count;
-            }
-
-            // Check messages every 30 seconds
-            setInterval(checkUnreadMessages, 30000);
-            checkUnreadMessages();
         });
     </script>
 </body>

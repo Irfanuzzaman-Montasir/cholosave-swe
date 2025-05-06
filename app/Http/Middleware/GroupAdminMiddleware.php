@@ -16,8 +16,13 @@ class GroupAdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $groupId = $request->route('group');
+        $groupId = $request->route('groupId');
         
+        if (!$groupId) {
+            return redirect()->route('home')
+                ->with('error', 'Invalid group ID.');
+        }
+
         $isAdmin = GroupMembership::where('group_id', $groupId)
             ->where('user_id', auth()->id())
             ->where('is_admin', true)
