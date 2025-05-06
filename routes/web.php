@@ -10,6 +10,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\AITipsController;
 
 // Main Pages
 Route::get('/', function () {
@@ -52,6 +53,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/investments/create', [InvestmentController::class, 'create'])->name('investments.create');
     Route::post('/investments', [InvestmentController::class, 'store'])->name('investments.store');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
+
+    Route::get('/ai-tips', [AITipsController::class, 'index'])->name('ai-tips');
 });
 
 // Admin Routes
