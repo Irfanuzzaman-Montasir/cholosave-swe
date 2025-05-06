@@ -145,6 +145,18 @@ class GroupController extends Controller
 
             \Log::info('Group found', ['group' => $group->toArray()]);
 
+            // Check if group is full
+            $currentMembers = \App\Models\GroupMembership::where('group_id', $groupId)
+                ->where('status', 'approved')
+                ->count();
+
+            if ($currentMembers >= $group->members) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This group has reached its maximum member limit'
+                ]);
+            }
+
             // Check if user already has a pending request
             $existingMembership = \App\Models\GroupMembership::where('group_id', $groupId)
                 ->where('user_id', $userId)

@@ -15,19 +15,18 @@ class MyGroup extends Model
 
     protected $fillable = [
         'group_name',
+        'description',
         'members',
         'group_admin_id',
         'dps_type',
         'time_period',
         'amount',
         'start_date',
-        'goal_amount',
-        'warning_time',
-        'emergency_fund',
         'bKash',
         'Rocket',
         'Nagad',
-        'description'
+        'goal_amount',
+        'emergency_fund'
     ];
 
     protected $casts = [

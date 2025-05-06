@@ -50,7 +50,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::get('/my-groups', [GroupController::class, 'myGroups'])->name('groups.my');
-    Route::get('/join-groups', [GroupController::class, 'joinGroups'])->name('groups.join');
+    Route::get('/join_groups', [GroupController::class, 'joinGroups'])->name('groups.join');
     
     // Group-specific routes
     Route::prefix('groups/{groupId}')->group(function () {
