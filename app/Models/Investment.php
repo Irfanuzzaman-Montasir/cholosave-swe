@@ -9,33 +9,32 @@ class Investment extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<string>
-     */
+    protected $primaryKey = 'investment_id';
+    public $timestamps = true;
+
     protected $fillable = [
-        'user_id',
         'group_id',
         'amount',
-        'type',
-        'status',
-        'description'
+        'investment_type',
+        'ex_profit',
+        'ex_return_date',
+        'status'
     ];
 
-    /**
-     * Get the user that owns the investment.
-     */
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'ex_profit' => 'double',
+        'ex_return_date' => 'date',
+    ];
 
-    /**
-     * Get the group that owns the investment.
-     */
+    // Relationships
     public function group()
     {
-        return $this->belongsTo(Group::class);
+        return $this->belongsTo(MyGroup::class, 'group_id');
+    }
+
+    public function returns()
+    {
+        return $this->hasMany(InvestmentReturn::class, 'investment_id');
     }
 } 
