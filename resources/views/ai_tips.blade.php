@@ -72,4 +72,105 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Populate Savings Overview
+    const data = window.FINANCIAL_DATA;
+    document.getElementById('savings-overview').innerHTML = `
+        <div class="mb-2 d-flex justify-content-between">
+            <span>Total Savings</span>
+            <span class="fw-bold text-success">৳${parseFloat(data.individual_savings).toFixed(2)}</span>
+        </div>
+        <div class="mb-2 d-flex justify-content-between">
+            <span>Monthly Savings</span>
+            <span class="fw-bold text-primary">৳${parseFloat(data.monthly_savings).toFixed(2)}</span>
+        </div>
+        <div class="mt-3">
+            <strong>Group Contributions</strong>
+            <ul class="list-unstyled mt-2">
+                ${data.group_contributions.map(group => `
+                    <li>
+                        <span>${group.group_name}:</span>
+                        <span class="text-info fw-bold">৳${parseFloat(group.user_contribution).toFixed(2)}</span>
+                        <span>/ ৳${parseFloat(group.total_contribution).toFixed(2)}</span>
+                    </li>
+                `).join('')}
+            </ul>
+        </div>
+    `;
+
+    // Populate group selection
+    const groupSelect = document.getElementById('group-id');
+    data.group_contributions.forEach(group => {
+        const opt = document.createElement('option');
+        opt.value = group.group_id;
+        opt.textContent = group.group_name;
+        groupSelect.appendChild(opt);
+    });
+
+    // Show/hide group selection
+    document.getElementById('savings-type').addEventListener('change', function () {
+        document.getElementById('group-selection-wrapper').classList.toggle('d-none', this.value !== 'group');
+    });
+
+    // Show/hide custom question
+    document.getElementById('question-select').addEventListener('change', function () {
+        document.getElementById('custom-question-block').classList.toggle('d-none', this.value !== 'custom');
+    });
+
+    // Handle form submission
+    document.getElementById('get-result').addEventListener('click', async function () {
+        const savingsType = document.getElementById('savings-type').value;
+        const groupId = groupSelect.value;
+        const questionSelect = document.getElementById('question-select').value;
+        const customQuestion = document.getElementById('custom-question').value;
+        const investmentTime = document.getElementById('investment-time').value;
+        const investmentDuration = document.getElementById('investment-duration').value;
+        const investmentType = document.getElementById('investment-type').value;
+
+        const question = questionSelect === 'custom' ? customQuestion : questionSelect;
+
+        const payload = {
+            savings_type: savingsType,
+            group_id: groupId !== 'all' ? groupId : null,
+            savings_data: data,
+            question: question,
+            investment_time: investmentTime,
+            investment_duration: investmentDuration,
+            investment_type: investmentType,
+            all_groups_data: groupId === 'all' ? data.group_contributions : null
+        };
+
+        const aiResponse = document.getElementById('ai-response');
+        aiResponse.classList.remove('d-none');
+        aiResponse.innerHTML = '<div class="text-center p-3"><span class="spinner-border"></span> Analyzing financial data...</div>';
+
+        try {
+            const response = await fetch('http://localhost:5000/generate_tips', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+            if (result.status === 'success') {
+                aiResponse.innerHTML = `
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h5 class="card-title">${result.advice.title || 'Financial Advice'}</h5>
+                            <p>${result.advice.main_advice}</p>
+                            <ul>
+                                ${result.advice.steps.map(step => `<li>${step}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            } else {
+                aiResponse.innerHTML = `<div class="alert alert-danger">${result.error || 'Failed to generate advice.'}</div>`;
+            }
+        } catch (err) {
+            aiResponse.innerHTML = `<div class="alert alert-danger">Error: ${err.message}</div>`;
+        }
+    });
+});
+</script>
 @endsection 
