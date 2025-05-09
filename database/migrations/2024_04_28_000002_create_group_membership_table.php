@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('group_membership', function (Blueprint $table) {
             $table->id('membership_id');
-            $table->foreignId('group_id')->nullable()->constrained('my_group', 'group_id');
+            $table->foreignId('group_id')->nullable()->constrained('my_groups', 'group_id');
             $table->foreignId('user_id')->nullable()->constrained('users');
             $table->enum('status', ['pending', 'approved', 'declined'])->default('pending');
             $table->boolean('is_admin')->default(false);

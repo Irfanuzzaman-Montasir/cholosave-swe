@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('transaction_info', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('group_id')->constrained('my_group', 'group_id');
+            $table->foreignId('group_id')->constrained('my_groups', 'group_id');
             $table->decimal('amount', 8, 2);
             $table->string('transaction_id');
             $table->enum('payment_method', ['bKash', 'Rocket', 'Nagad']);

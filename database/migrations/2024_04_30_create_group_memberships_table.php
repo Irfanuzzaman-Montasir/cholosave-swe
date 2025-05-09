@@ -6,12 +6,12 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up()
+    public function up(): void
     {
-        Schema::create('group_membership', function (Blueprint $table) {
+        Schema::create('group_memberships', function (Blueprint $table) {
             $table->id('membership_id');
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('group_id')->constrained('my_groups')->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained('users');
+            $table->foreignId('group_id')->nullable()->constrained('my_groups', 'group_id');
             $table->enum('status', ['pending', 'active', 'rejected', 'left'])->default('pending');
             $table->boolean('is_admin')->default(false);
             $table->boolean('leave_request')->default(false);
@@ -19,13 +19,11 @@ return new class extends Migration
             $table->timestamp('join_request_date')->nullable();
             $table->integer('time_period_remaining')->nullable();
             $table->timestamps();
-
-            $table->unique(['user_id', 'group_id']);
         });
     }
 
-    public function down()
+    public function down(): void
     {
-        Schema::dropIfExists('group_membership');
+        Schema::dropIfExists('group_memberships');
     }
 }; 

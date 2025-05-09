@@ -344,7 +344,9 @@
                         </div>
                         
                         <div class="user-avatar" id="user-menu-toggle">
-                            {{ substr(Auth::user()->name, 0, 1) }}
+                            @if(Auth::check())
+                                {{ substr(Auth::user()->name, 0, 1) }}
+                            @endif
                         </div>
                         <div class="dropdown-menu" id="user-dropdown">
                             <a href="{{ route('profile') }}" class="dropdown-item">

@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('notifications', function (Blueprint $table) {
             $table->id('notification_id');
             $table->foreignId('target_user_id')->nullable()->constrained('users')->cascadeOnDelete();
-            $table->foreignId('target_group_id')->nullable()->constrained('my_group', 'group_id')->cascadeOnDelete();
+            $table->foreignId('target_group_id')->nullable()->constrained('my_groups', 'group_id')->cascadeOnDelete();
             $table->string('title');
             $table->text('message');
             $table->enum('status', ['unread', 'read'])->default('unread');

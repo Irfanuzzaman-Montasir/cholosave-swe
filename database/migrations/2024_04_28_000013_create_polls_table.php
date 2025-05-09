@@ -10,8 +10,9 @@ return new class extends Migration
     {
         Schema::create('polls', function (Blueprint $table) {
             $table->id('poll_id');
-            $table->foreignId('group_id')->nullable()->constrained('my_group', 'group_id');
-            $table->text('poll_question')->nullable();
+            $table->foreignId('group_id')->nullable()->constrained('my_groups', 'group_id');
+            $table->string('title');
+            $table->text('description')->nullable();
             $table->enum('status', ['active', 'closed'])->default('active');
             $table->timestamps();
         });

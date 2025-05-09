@@ -11,7 +11,7 @@ class MyGroup extends Model
 
     protected $primaryKey = 'group_id';
     public $timestamps = true;
-    protected $table = 'my_group';
+    protected $table = 'my_groups';
 
     protected $fillable = [
         'group_name',

@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('loan_repayments', function (Blueprint $table) {
             $table->id('repayment_id');
-            $table->foreignId('loan_id')->constrained('loan_request');
+            $table->foreignId('loan_id')->nullable()->constrained('loan_request', 'loan_request_id');
             $table->decimal('amount', 10, 2);
             $table->string('payment_method', 50)->nullable();
             $table->string('transaction_reference', 100)->nullable();

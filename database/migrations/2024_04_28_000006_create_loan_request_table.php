@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('loan_request', function (Blueprint $table) {
-            $table->id();
+            $table->id('loan_request_id');
             $table->foreignId('user_id')->nullable()->constrained('users');
-            $table->foreignId('group_id')->nullable()->constrained('my_group', 'group_id');
+            $table->foreignId('group_id')->nullable()->constrained('my_groups', 'group_id');
             $table->text('reason')->nullable();
             $table->decimal('amount', 8, 2)->nullable();
             $table->enum('status', ['pending', 'approved', 'declined', 'repaid'])->default('pending');

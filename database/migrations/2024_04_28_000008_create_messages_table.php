@@ -9,9 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('messages', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('group_id')->constrained('my_group', 'group_id');
-            $table->foreignId('user_id')->constrained('users');
+            $table->id('message_id');
+            $table->foreignId('group_id')->nullable()->constrained('my_groups', 'group_id');
+            $table->foreignId('user_id')->nullable()->constrained('users');
             $table->text('message');
             $table->timestamps();
         });
