@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Message extends Model
 {
@@ -12,19 +13,19 @@ class Message extends Model
     public $timestamps = true;
 
     protected $fillable = [
-        'group_id',
         'user_id',
-        'message'
+        'group_id',
+        'message',
     ];
 
     // Relationships
-    public function group()
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(MyGroup::class, 'group_id');
+        return $this->belongsTo(User::class);
     }
 
-    public function user()
+    public function group(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(MyGroup::class, 'group_id');
     }
 } 

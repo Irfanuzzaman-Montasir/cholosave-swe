@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title')</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite('resources/css/app.css')
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -236,95 +237,18 @@
 
         <!-- Navigation -->
         <div class="nav-scroll">
-            <ul class="nav flex-column px-3 py-2">
-                <li class="nav-item">
-                    <a href="{{ route('groups.member.dashboard', $group->group_id) }}" class="nav-link">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-bell"></i>
-                        <span>Activity Alert</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('member.loan.request.create', $group->group_id) }}" class="nav-link">
-                        <i class="fas fa-hand-holding-dollar"></i>
-                        <span>Loan Request</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-comments"></i>
-                        <span>Chats</span>
-                        <span class="badge bg-danger ms-auto" id="unreadCount" style="display: none;">0</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('groups.members', $group->group_id) }}" class="nav-link">
-                        <i class="fas fa-users"></i>
-                        <span>Members</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-credit-card"></i>
-                        <span>Payment</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link" id="leaveRequestBtn">
-                        <i class="fas fa-calendar-day"></i>
-                        <span>Leave Request</span>
-                    </a>
-                </li>
-
-                <!-- History Section -->
-                <li class="nav-item">
-                    <div class="nav-link" id="historyToggle">
-                        <i class="fas fa-history"></i>
-                        <span>History</span>
-                        <i class="fas fa-chevron-down ms-auto history-chevron"></i>
-                    </div>
-                    <div class="history-submenu">
-                        <a href="#" class="nav-link">
-                            <span>Loan History</span>
-                        </a>
-                        <a href="#" class="nav-link">
-                            <span>Payment History</span>
-                        </a>
-                        <a href="#" class="nav-link">
-                            <span>Withdraw History</span>
-                        </a>
-                    </div>
-                </li>
-
-                <li class="nav-item">
-                    <a href="{{ route('member.withdrawal.request.create', $group->group_id) }}" class="nav-link">
-                        <i class="fas fa-wallet"></i>
-                        <span>Withdraw Request</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-piggy-bank"></i>
-                        <span>Investment Details</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-file-lines"></i>
-                        <span>Generate Report</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ route('home') }}" class="nav-link text-danger">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Exit</span>
-                    </a>
-                </li>
+            <ul class="px-3 py-2 space-y-1">
+                <li><a href="{{ route('groups.member.dashboard', $group->group_id) }}" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700"><i class="fas fa-chart-line mr-2"></i>Dashboard</a></li>
+                <li><a href="#" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700"><i class="fas fa-bell mr-2"></i>Activity Alert</a></li>
+                <li><a href="{{ route('member.loan.request.create', $group->group_id) }}" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700"><i class="fas fa-hand-holding-dollar mr-2"></i>Loan Request</a></li>
+                <li><a href="{{ route('chat.index', ['groupId' => $group->group_id]) }}" class="block px-4 py-2 rounded hover:bg-slate-100 text-blue-700 font-semibold bg-blue-100"><i class="fas fa-comments mr-2"></i>Chats</a></li>
+                <li><a href="{{ route('groups.members', $group->group_id) }}" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700"><i class="fas fa-users mr-2"></i>Members</a></li>
+                <li><a href="#" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700"><i class="fas fa-credit-card mr-2"></i>Payment</a></li>
+                <li><a href="#" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700" id="leaveRequestBtn"><i class="fas fa-calendar-day mr-2"></i>Leave Request</a></li>
+                <li><a href="{{ route('member.withdrawal.request.create', $group->group_id) }}" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700"><i class="fas fa-wallet mr-2"></i>Withdraw Request</a></li>
+                <li><a href="#" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700"><i class="fas fa-piggy-bank mr-2"></i>Investment Details</a></li>
+                <li><a href="#" class="block px-4 py-2 rounded hover:bg-slate-100 text-slate-700"><i class="fas fa-file-lines mr-2"></i>Generate Report</a></li>
+                <li><a href="{{ route('home') }}" class="block px-4 py-2 rounded hover:bg-red-100 text-red-700"><i class="fas fa-sign-out-alt mr-2"></i>Exit</a></li>
             </ul>
         </div>
 
@@ -338,7 +262,7 @@
     </div>
 
     <!-- Main Content -->
-    <div class="main-content force-light">
+    <div class="main-content bg-slate-50 min-h-screen" style="margin-left: 16rem;">
         @yield('content')
     </div>
 
