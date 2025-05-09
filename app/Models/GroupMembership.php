@@ -11,6 +11,7 @@ class GroupMembership extends Model
 
     protected $primaryKey = 'membership_id';
     public $timestamps = true;
+    protected $table = 'group_membership';
 
     protected $fillable = [
         'group_id',

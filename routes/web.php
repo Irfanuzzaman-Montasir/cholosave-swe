@@ -9,8 +9,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\AITipsController;
+use App\Http\Controllers\LoanRequestController;
+use App\Http\Controllers\WithdrawalController;
 
 // Main Pages
 Route::get('/', function () {
@@ -40,13 +40,35 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+    Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
     Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
     
-    // Groups Routes
-    Route::get('/groups', [GroupController::class, 'index'])->name('groups.index');
+    // Group Routes
     Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
-    Route::get('/groups/{group}', [GroupController::class, 'show'])->name('groups.show');
+    Route::get('/my-groups', [GroupController::class, 'myGroups'])->name('groups.my');
+    Route::get('/join_groups', [GroupController::class, 'joinGroups'])->name('groups.join');
+    
+    // Group-specific routes
+    Route::prefix('groups/{groupId}')->group(function () {
+        Route::get('/', [GroupController::class, 'show'])->name('groups.show');
+        Route::post('/join', [GroupController::class, 'joinGroup'])->name('groups.join.request');
+        Route::get('/enter', [GroupController::class, 'enterGroup'])->name('groups.enter');
+        
+        // Admin routes
+        Route::middleware([\App\Http\Middleware\GroupAdminMiddleware::class])->group(function () {
+            Route::get('/admin-dashboard', [GroupController::class, 'adminDashboard'])->name('groups.admin.dashboard');
+            Route::get('/loan-request', [LoanRequestController::class, 'create'])->name('admin.loan.request.create');
+            Route::post('/loan-request', [LoanRequestController::class, 'store'])->name('admin.loan.request.store');
+        });
+        
+        // Member routes
+        Route::get('/member/dashboard', [GroupController::class, 'memberDashboard'])->name('groups.member.dashboard');
+        Route::get('/member/loan-request', [LoanRequestController::class, 'create'])->name('member.loan.request.create');
+        Route::post('/member/loan-request', [LoanRequestController::class, 'store'])->name('member.loan.request.store');
+        Route::get('/member/withdrawal-request', [WithdrawalController::class, 'create'])->name('member.withdrawal.request.create');
+        Route::post('/member/withdrawal-request', [WithdrawalController::class, 'store'])->name('member.withdrawal.request.store');
+    });
     
     // Investments Routes
     Route::get('/investments', [InvestmentController::class, 'index'])->name('investments.index');
@@ -54,22 +76,6 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/investments', [InvestmentController::class, 'store'])->name('investments.store');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
 
-    Route::get('/ai-tips', [AITipsController::class, 'index'])->name('ai-tips');
-});
-
-// Admin Routes
-Route::prefix('admin')->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin'])->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
-    
-    // Expert Team Routes
-    Route::get('/experts', [App\Http\Controllers\Admin\ExpertController::class, 'index'])->name('admin.experts.index');
-    Route::get('/experts/create', [App\Http\Controllers\Admin\ExpertController::class, 'create'])->name('admin.experts.create');
-    Route::post('/experts', [App\Http\Controllers\Admin\ExpertController::class, 'store'])->name('admin.experts.store');
-    Route::get('/experts/{expert}/edit', [App\Http\Controllers\Admin\ExpertController::class, 'edit'])->name('admin.experts.edit');
-    Route::put('/experts/{expert}', [App\Http\Controllers\Admin\ExpertController::class, 'update'])->name('admin.experts.update');
-    Route::delete('/experts/{expert}', [App\Http\Controllers\Admin\ExpertController::class, 'destroy'])->name('admin.experts.destroy');
-    
-    // Contact Messages Routes
-    Route::get('/contacts', [App\Http\Controllers\Admin\ContactController::class, 'index'])->name('admin.contacts.index');
-    Route::delete('/contacts/{contact}', [App\Http\Controllers\Admin\ContactController::class, 'destroy'])->name('admin.contacts.destroy');
+    // Group Members Route
+    Route::get('/groups/{group}/members', [GroupController::class, 'members'])->name('groups.members');
 });

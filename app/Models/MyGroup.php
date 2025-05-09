@@ -11,22 +11,22 @@ class MyGroup extends Model
 
     protected $primaryKey = 'group_id';
     public $timestamps = true;
+    protected $table = 'my_group';
 
     protected $fillable = [
         'group_name',
+        'description',
         'members',
         'group_admin_id',
         'dps_type',
         'time_period',
         'amount',
         'start_date',
-        'goal_amount',
-        'warning_time',
-        'emergency_fund',
         'bKash',
         'Rocket',
         'Nagad',
-        'description'
+        'goal_amount',
+        'emergency_fund'
     ];
 
     protected $casts = [
@@ -45,6 +45,11 @@ class MyGroup extends Model
     {
         return $this->belongsToMany(User::class, 'group_membership', 'group_id', 'user_id')
             ->withPivot('status', 'is_admin', 'leave_request', 'join_date', 'join_request_date', 'time_period_remaining');
+    }
+
+    public function memberships()
+    {
+        return $this->hasMany(GroupMembership::class, 'group_id', 'group_id');
     }
 
     public function investments()
@@ -100,5 +105,15 @@ class MyGroup extends Model
     public function withdrawals()
     {
         return $this->hasMany(Withdrawal::class);
+    }
+
+    public function payments()
+    {
+        return $this->hasMany(GroupPayment::class, 'group_id');
+    }
+
+    public function paymentSchedule()
+    {
+        return $this->hasMany(GroupPaymentSchedule::class, 'group_id');
     }
 } 
