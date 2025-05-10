@@ -11,6 +11,7 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\LoanRequestController;
 use App\Http\Controllers\WithdrawalController;
+use App\Http\Controllers\AiTipsController;
 
 // Main Pages
 Route::get('/', function () {
@@ -78,4 +79,7 @@ Route::middleware(['auth'])->group(function () {
 
     // Group Members Route
     Route::get('/groups/{group}/members', [GroupController::class, 'members'])->name('groups.members');
+
+    // AI Tips Route
+    Route::middleware(['auth'])->get('/ai-tips', [\App\Http\Controllers\AiTipsController::class, 'show'])->name('ai-tips');
 });

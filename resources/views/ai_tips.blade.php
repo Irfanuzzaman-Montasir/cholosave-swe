@@ -1,174 +1,212 @@
 @extends('layouts.app')
 
-@section('title', 'AI Tips - CholoSave')
+@section('title', 'AI Financial Assistant')
 
 @section('content')
-<div class="container py-5">
-    <div class="alert alert-warning mb-4">
-        <strong>Caution:</strong> AI-generated financial advice is for informational purposes only. Always consult with a professional financial advisor before making important financial decisions.
+<!-- Tailwind & Inter font for this page only -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+    body { font-family: 'Inter', sans-serif; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
+    .glass-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border-radius: 1rem; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+</style>
+<script>
+    window.FINANCIAL_DATA = @json($financialData);
+</script>
+<div class="container mx-auto max-w-6xl mt-16">
+    <!-- AI Caution Notice -->
+    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.494-1.646-1.742-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-yellow-700">
+                    <strong>Caution:</strong> AI-generated financial advice is for informational purposes only.
+                    Always consult with a professional financial advisor before making important financial decisions.
+                </p>
+            </div>
+        </div>
     </div>
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Savings Overview</h5>
-                    <div id="savings-overview">
-                        <!-- Populated by JS -->
-                    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Savings Overview -->
+        <div class="md:col-span-1 glass-card p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">Savings Overview</h2>
+            <div class="space-y-3" id="savings-overview">
+                <!-- Populated by JS -->
+            </div>
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-3 text-gray-700 border-b pb-2">Group Contributions</h3>
+                <div class="space-y-2" id="group-contributions">
+                    <!-- Populated by JS -->
                 </div>
             </div>
         </div>
-        <div class="col-md-8 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">AI Financial Guidance</h5>
-                    <form id="ai-tips-form">
-                        <div class="mb-3">
-                            <label for="savings-type" class="form-label">Savings Type</label>
-                            <select id="savings-type" class="form-select">
-                                <option value="individual">Individual Savings</option>
-                                <option value="group">Group Savings</option>
-                            </select>
-                        </div>
-                        <div class="mb-3 d-none" id="group-selection-wrapper">
-                            <label for="group-id" class="form-label">Choose Group</label>
-                            <select id="group-id" class="form-select">
-                                <option value="all">All Groups</option>
-                                <!-- Populated by JS -->
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label for="question-select" class="form-label">Financial Question</label>
-                            <select id="question-select" class="form-select">
-                                <option value="financial_health">What is my financial health?</option>
-                                <option value="budgeting">How can I improve my budgeting?</option>
-                                <option value="investment_advice">What are the best investment options for me over [Time Period] in [Investment Type]?</option>
-                                <option value="savings_strategy">What savings strategy should I follow?</option>
-                                <option value="risk_management">How should I manage my financial risks?</option>
-                                <option value="custom">Custom Question</option>
-                            </select>
-                        </div>
-                        <div class="mb-3 d-none" id="custom-question-block">
-                            <label for="custom-question" class="form-label">Your Question:</label>
-                            <input type="text" id="custom-question" class="form-control" placeholder="Type your question here...">
-                        </div>
-                        <div id="investment-options" class="mb-3">
-                            <label for="investment-time" class="form-label">Investment Time Period</label>
-                            <div class="input-group mb-2">
-                                <input type="number" id="investment-time" class="form-control" placeholder="1" value="1">
-                                <select id="investment-duration" class="form-select">
-                                    <option value="month">Month</option>
-                                    <option value="year">Year</option>
-                                </select>
-                            </div>
-                            <label for="investment-type" class="form-label">Investment Type</label>
-                            <input type="text" id="investment-type" class="form-control" placeholder="Enter investment type...">
-                        </div>
-                        <button type="button" id="get-result" class="btn btn-primary w-100">Get Financial Advice</button>
-                    </form>
-                    <div id="ai-response" class="mt-4 d-none"></div>
+        <!-- AI Financial Guidance Section -->
+        <div class="md:col-span-2 glass-card p-6">
+            <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-2">AI Financial Guidance</h2>
+            <div class="grid md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label for="savings-type" class="block text-sm font-medium text-gray-700 mb-2">Savings Type</label>
+                    <select id="savings-type" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 transition">
+                        <option value="individual">Individual Savings</option>
+                        <option value="group">Group Savings</option>
+                    </select>
+                </div>
+                <div id="group-selection" class="hidden">
+                    <label for="group-id" class="block text-sm font-medium text-gray-700 mb-2">Choose Group</label>
+                    <select id="group-id" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 transition">
+                        <option value="all">All Groups</option>
+                        <!-- Populated by JS -->
+                    </select>
                 </div>
             </div>
+            <div class="mb-4">
+                <label for="question-select" class="block text-sm font-medium text-gray-700 mb-2">Financial Question</label>
+                <select id="question-select" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 transition">
+                    <option value="financial_health">What is my financial health?</option>
+                    <option value="budgeting">How can I improve my budgeting?</option>
+                    <option value="investment_advice">What are the best investment options for me over [Time Period] in [Investment Type]?</option>
+                    <option value="savings_strategy">What savings strategy should I follow?</option>
+                    <option value="risk_management">How should I manage my financial risks?</option>
+                    <option value="custom">Custom Question</option>
+                </select>
+            </div>
+            <!-- Investment Options Section (always visible) -->
+            <div id="investment-options" class="mb-4">
+                <div class="mb-4">
+                    <label for="investment-time" class="block text-sm font-medium text-gray-700 mb-2">Investment Time Period</label>
+                    <div class="flex items-center gap-2">
+                        <input type="number" id="investment-time" class="w-20 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 transition" placeholder="1" value="1">
+                        <select id="investment-duration" class="w-32 border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 transition">
+                            <option value="month">Month</option>
+                            <option value="year">Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="investment-type" class="block text-sm font-medium text-gray-700 mb-2">Investment Type</label>
+                    <input type="text" id="investment-type" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 transition" placeholder="Enter investment type...">
+                </div>
+            </div>
+            <!-- Custom Question Block -->
+            <div id="custom-question-block" class="mb-4 hidden">
+                <label for="custom-question" class="block text-sm font-medium text-gray-700 mb-2">Your Question:</label>
+                <input type="text" id="custom-question" class="w-full border-gray-300 rounded-md shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 transition" placeholder="Type your question here...">
+            </div>
+            <button id="get-result" class="w-full bg-blue-500 text-white py-3 rounded-lg hover:bg-blue-600 transition font-semibold shadow-md">Get Financial Advice</button>
+            <div id="ai-response" class="mt-6 hidden"></div>
         </div>
     </div>
 </div>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Populate Savings Overview
-    const data = window.FINANCIAL_DATA;
-    document.getElementById('savings-overview').innerHTML = `
-        <div class="mb-2 d-flex justify-content-between">
-            <span>Total Savings</span>
-            <span class="fw-bold text-success">৳${parseFloat(data.individual_savings).toFixed(2)}</span>
-        </div>
-        <div class="mb-2 d-flex justify-content-between">
-            <span>Monthly Savings</span>
-            <span class="fw-bold text-primary">৳${parseFloat(data.monthly_savings).toFixed(2)}</span>
-        </div>
-        <div class="mt-3">
-            <strong>Group Contributions</strong>
-            <ul class="list-unstyled mt-2">
-                ${data.group_contributions.map(group => `
-                    <li>
-                        <span>${group.group_name}:</span>
-                        <span class="text-info fw-bold">৳${parseFloat(group.user_contribution).toFixed(2)}</span>
-                        <span>/ ৳${parseFloat(group.total_contribution).toFixed(2)}</span>
-                    </li>
-                `).join('')}
-            </ul>
+function displayAdvice(result) {
+    const aiResponse = document.getElementById('ai-response');
+    const advice = result.advice;
+    const formattedSteps = advice.steps
+        .map(step => `<li class=\"flex items-center text-gray-600\">${step.replace(/^\*/, '•')}</li>`)
+        .join('');
+    aiResponse.innerHTML = `
+        <div class=\"space-y-6 animate-fade-in\">
+            <div class=\"bg-white rounded-xl shadow-md p-6 border border-gray-100\">
+                <h3 class=\"text-xl font-bold mb-4 text-gray-800\">${advice.title || 'Financial Advice'}</h3>
+                <p class=\"text-lg text-gray-700 mb-4\">${advice.main_advice}</p>
+                <div class=\"mt-4\">
+                    <h4 class=\"font-semibold mb-2 text-gray-700\">Action Steps:</h4>
+                    <ul class=\"space-y-2 list-disc pl-5\">${formattedSteps}</ul>
+                </div>
+            </div>
         </div>
     `;
-
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const data = window.FINANCIAL_DATA;
+    // Savings Overview
+    document.getElementById('savings-overview').innerHTML = `
+        <div class=\"flex justify-between items-center\">
+            <span class=\"text-gray-600\">Total Savings</span>
+            <span class=\"font-bold text-green-600\">৳${parseFloat(data.individual_savings).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+        </div>
+        <div class=\"flex justify-between items-center\">
+            <span class=\"text-gray-600\">Monthly Savings</span>
+            <span class=\"font-bold text-blue-600\">৳${parseFloat(data.monthly_savings).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+        </div>
+    `;
+    // Group Contributions
+    document.getElementById('group-contributions').innerHTML = data.group_contributions.map(group => `
+        <div class=\"flex items-center justify-between\">
+            <span class=\"text-sm text-gray-600\">${group.group_name}</span>
+            <span class=\"text-sm font-bold text-indigo-600\">৳${parseFloat(group.user_contribution).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})} / ৳${parseFloat(group.total_contribution).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2})}</span>
+        </div>
+    `).join('');
     // Populate group selection
     const groupSelect = document.getElementById('group-id');
-    data.group_contributions.forEach(group => {
-        const opt = document.createElement('option');
-        opt.value = group.group_id;
-        opt.textContent = group.group_name;
-        groupSelect.appendChild(opt);
-    });
-
+    if (groupSelect) {
+        data.group_contributions.forEach(group => {
+            const opt = document.createElement('option');
+            opt.value = group.group_id;
+            opt.textContent = group.group_name;
+            groupSelect.appendChild(opt);
+        });
+    }
     // Show/hide group selection
-    document.getElementById('savings-type').addEventListener('change', function () {
-        document.getElementById('group-selection-wrapper').classList.toggle('d-none', this.value !== 'group');
+    document.getElementById('savings-type').addEventListener('change', () => {
+        const groupSelection = document.getElementById('group-selection');
+        groupSelection.classList.toggle('hidden', document.getElementById('savings-type').value !== 'group');
     });
-
     // Show/hide custom question
     document.getElementById('question-select').addEventListener('change', function () {
-        document.getElementById('custom-question-block').classList.toggle('d-none', this.value !== 'custom');
+        document.getElementById('custom-question-block').classList.toggle('hidden', this.value !== 'custom');
     });
-
-    // Handle form submission
-    document.getElementById('get-result').addEventListener('click', async function () {
+    document.getElementById('get-result').addEventListener('click', async () => {
+        const questionSelect = document.getElementById('question-select');
+        const question = questionSelect.value === 'custom'
+            ? document.getElementById('custom-question').value.trim()
+            : questionSelect.value;
+        if (!question) {
+            alert('Please select or write a question.');
+            return;
+        }
+        const aiResponse = document.getElementById('ai-response');
+        aiResponse.classList.remove('hidden');
+        aiResponse.innerHTML = '<div class="flex items-center justify-center p-4"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><span class="ml-2">Analyzing financial data...</span></div>';
         const savingsType = document.getElementById('savings-type').value;
-        const groupId = groupSelect.value;
-        const questionSelect = document.getElementById('question-select').value;
-        const customQuestion = document.getElementById('custom-question').value;
-        const investmentTime = document.getElementById('investment-time').value;
-        const investmentDuration = document.getElementById('investment-duration').value;
-        const investmentType = document.getElementById('investment-type').value;
-
-        const question = questionSelect === 'custom' ? customQuestion : questionSelect;
-
+        const selectedGroupId = document.getElementById('group-id') ? document.getElementById('group-id').value : null;
+        const investmentTime = document.getElementById('investment-time')?.value || null;
+        const investmentDuration = document.getElementById('investment-duration')?.value || null;
+        const investmentType = document.getElementById('investment-type')?.value || null;
         const payload = {
             savings_type: savingsType,
-            group_id: groupId !== 'all' ? groupId : null,
+            group_id: selectedGroupId !== 'all' ? selectedGroupId : null,
             savings_data: data,
-            question: question,
+            question,
             investment_time: investmentTime,
             investment_duration: investmentDuration,
             investment_type: investmentType,
-            all_groups_data: groupId === 'all' ? data.group_contributions : null
+            all_groups_data: selectedGroupId === 'all' ? data.group_contributions : null
         };
-
-        const aiResponse = document.getElementById('ai-response');
-        aiResponse.classList.remove('d-none');
-        aiResponse.innerHTML = '<div class="text-center p-3"><span class="spinner-border"></span> Analyzing financial data...</div>';
-
         try {
             const response = await fetch('http://localhost:5000/generate_tips', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to generate advice');
+            }
             const result = await response.json();
             if (result.status === 'success') {
-                aiResponse.innerHTML = `
-                    <div class="card mt-3">
-                        <div class="card-body">
-                            <h5 class="card-title">${result.advice.title || 'Financial Advice'}</h5>
-                            <p>${result.advice.main_advice}</p>
-                            <ul>
-                                ${result.advice.steps.map(step => `<li>${step}</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                `;
+                displayAdvice(result);
             } else {
-                aiResponse.innerHTML = `<div class="alert alert-danger">${result.error || 'Failed to generate advice.'}</div>`;
+                throw new Error(result.error || 'Failed to generate advice');
             }
         } catch (err) {
-            aiResponse.innerHTML = `<div class="alert alert-danger">Error: ${err.message}</div>`;
+            aiResponse.innerHTML = `<div class=\"alert alert-danger\">Error: ${err.message}</div>`;
         }
     });
 });
