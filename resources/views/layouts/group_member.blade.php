@@ -289,13 +289,13 @@
                         <i class="fas fa-chevron-down ms-auto history-chevron"></i>
                     </div>
                     <div class="history-submenu">
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('member.loan.history', $group->group_id) }}" class="nav-link">
                             <span>Loan History</span>
                         </a>
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('member.payment.history', $group->group_id) }}" class="nav-link">
                             <span>Payment History</span>
                         </a>
-                        <a href="#" class="nav-link">
+                        <a href="{{ route('member.withdrawal.history', $group->group_id) }}" class="nav-link">
                             <span>Withdraw History</span>
                         </a>
                     </div>
@@ -314,7 +314,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('member.report.generate', $group->group_id) }}" class="nav-link">
                         <i class="fas fa-file-lines"></i>
                         <span>Generate Report</span>
                     </a>
@@ -373,6 +373,16 @@
                 themeText.textContent = 'Dark Mode';
                 localStorage.setItem('theme', 'light');
             }
+        });
+
+        // History toggle functionality
+        const historyToggle = document.getElementById('historyToggle');
+        const historySubmenu = historyToggle.nextElementSibling;
+        const historyChevron = historyToggle.querySelector('.history-chevron');
+
+        historyToggle.addEventListener('click', () => {
+            historySubmenu.classList.toggle('show');
+            historyChevron.classList.toggle('rotated');
         });
     </script>
 </body>

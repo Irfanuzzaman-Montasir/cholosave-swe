@@ -48,6 +48,23 @@ class WithdrawalController extends Controller
             'payment_method' => $request->payment_method,
         ]);
 
-        return redirect()->back()->with('success', 'Withdrawal request submitted successfully.');
+        return redirect()->back()
+            ->with('success', 'Withdrawal request submitted successfully.')
+            ->with('just_submitted', true);
+    }
+
+    public function downloadPdf($withdrawalId)
+    {
+        $withdrawal = Withdrawal::findOrFail($withdrawalId);
+        $group = MyGroup::findOrFail($withdrawal->group_id);
+        $user = Auth::user();
+
+        $pdf = PDF::loadView('pdf.withdrawal', [
+            'withdrawal' => $withdrawal,
+            'group' => $group,
+            'user' => $user
+        ]);
+
+        return $pdf->download('withdrawal-request-' . $withdrawalId . '.pdf');
     }
 } 

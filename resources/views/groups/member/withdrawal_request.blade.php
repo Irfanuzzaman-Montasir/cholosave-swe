@@ -40,6 +40,19 @@
         transform: translateY(-1px);
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
+    .error-message {
+        color: #ff0000;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    .error-message::before {
+        content: "⚠️";
+        font-size: 1rem;
+    }
 </style>
 @endpush
 
@@ -57,28 +70,28 @@
             @csrf
             <div>
                 <label for="amount" class="block text-sm font-medium text-black mb-2">Withdrawal Amount (BDT)</label>
-                <input type="number" id="amount" name="amount" class="form-input" placeholder="Enter amount" required value="{{ old('amount') }}">
+                <input type="number" id="amount" name="amount" class="form-input @error('amount') border-red-500 @enderror" placeholder="Enter amount" required value="{{ old('amount') }}">
                 @error('amount')
-                    <div class="text-red-500 text-sm mt-2">{{ $message }}</div>
+                    <div class="error-message">{{ $message }}</div>
                 @enderror
             </div>
             <div>
                 <label for="payment_number" class="block text-sm font-medium text-black mb-2">Payment Number</label>
-                <input type="text" id="payment_number" name="payment_number" class="form-input" placeholder="Enter payment number" required value="{{ old('payment_number') }}">
+                <input type="text" id="payment_number" name="payment_number" class="form-input @error('payment_number') border-red-500 @enderror" placeholder="Enter payment number" required value="{{ old('payment_number') }}">
                 @error('payment_number')
-                    <div class="text-red-500 text-sm mt-2">{{ $message }}</div>
+                    <div class="error-message">{{ $message }}</div>
                 @enderror
             </div>
             <div>
                 <label for="payment_method" class="block text-sm font-medium text-black mb-2">Payment Method</label>
-                <select id="payment_method" name="payment_method" class="form-input" required>
+                <select id="payment_method" name="payment_method" class="form-input @error('payment_method') border-red-500 @enderror" required>
                     <option value="">Select a method</option>
                     <option value="Bkash" {{ old('payment_method') == 'Bkash' ? 'selected' : '' }}>Bkash</option>
                     <option value="Nagad" {{ old('payment_method') == 'Nagad' ? 'selected' : '' }}>Nagad</option>
                     <option value="Rocket" {{ old('payment_method') == 'Rocket' ? 'selected' : '' }}>Rocket</option>
                 </select>
                 @error('payment_method')
-                    <div class="text-red-500 text-sm mt-2">{{ $message }}</div>
+                    <div class="error-message">{{ $message }}</div>
                 @enderror
             </div>
             <div class="pt-4">
@@ -92,13 +105,29 @@
 @endsection
 
 @push('scripts')
-@if(session('success'))
+@if(session('success') && session('just_submitted'))
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     Swal.fire({
+        icon: 'success',
         title: 'Success!',
         text: '{{ session('success') }}',
-        icon: 'success',
+        confirmButtonText: 'OK'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = window.location.pathname + window.location.search;
+        }
+    });
+</script>
+@endif
+
+@if(session('error') && !session('just_submitted'))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: '{{ session('error') }}',
         confirmButtonText: 'OK'
     });
 </script>

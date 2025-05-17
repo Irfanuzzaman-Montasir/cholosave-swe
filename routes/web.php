@@ -11,6 +11,8 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\LoanRequestController;
 use App\Http\Controllers\WithdrawalController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\GroupMemberController;
 
 // Main Pages
 Route::get('/', function () {
@@ -71,7 +73,15 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/member/loan-request', [LoanRequestController::class, 'store'])->name('member.loan.request.store');
         Route::get('/member/withdrawal-request', [WithdrawalController::class, 'create'])->name('member.withdrawal.request.create');
         Route::post('/member/withdrawal-request', [WithdrawalController::class, 'store'])->name('member.withdrawal.request.store');
+        Route::get('/member/report', [ReportController::class, 'generateReport'])->name('member.report.generate');
+        Route::get('/member/payment-history', [GroupMemberController::class, 'paymentHistory'])->name('member.payment.history');
     });
+    
+    // Withdrawal History Route
+    Route::get('/member/{groupId}/withdrawal-history', [GroupMemberController::class, 'withdrawalHistory'])->name('member.withdrawal.history');
+    
+    // Loan History Route
+    Route::get('/member/{groupId}/loan-history', [GroupMemberController::class, 'loanHistory'])->name('member.loan.history');
     
     // Investments Routes
     Route::get('/investments', [InvestmentController::class, 'index'])->name('investments.index');
