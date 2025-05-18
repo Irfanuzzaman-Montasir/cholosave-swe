@@ -69,12 +69,26 @@ Route::middleware(['auth'])->group(function () {
         
         // Member routes
         Route::get('/member/dashboard', [GroupController::class, 'memberDashboard'])->name('groups.member.dashboard');
+        Route::get('/member/investment-details', [GroupController::class, 'investmentDetails'])->name('groups.member.investment-details');
+        Route::get('/member/investment-details/export', [GroupController::class, 'exportInvestmentDetails'])->name('groups.member.investment-details.export');
         Route::get('/member/loan-request', [LoanRequestController::class, 'create'])->name('member.loan.request.create');
         Route::post('/member/loan-request', [LoanRequestController::class, 'store'])->name('member.loan.request.store');
         Route::get('/member/withdrawal-request', [WithdrawalController::class, 'create'])->name('member.withdrawal.request.create');
         Route::post('/member/withdrawal-request', [WithdrawalController::class, 'store'])->name('member.withdrawal.request.store');
         Route::get('/member/report', [ReportController::class, 'generateReport'])->name('member.report.generate');
         Route::get('/member/payment-history', [GroupMemberController::class, 'paymentHistory'])->name('member.payment.history');
+        Route::get('/member/installment-payment', [GroupMemberController::class, 'createInstallmentPayment'])->name('member.installment.payment.create');
+        Route::post('/member/installment-payment/initiate', [GroupMemberController::class, 'initiateInstallmentPayment'])->name('member.installment.payment.initiate');
+
+        // Installment Payment OTP Verification Routes
+        Route::get('/member/installment-payment/verify-otp/{transactionId}', [GroupMemberController::class, 'showInstallmentVerifyOtpForm'])->name('member.installment.payment.verify-otp');
+        Route::post('/member/installment-payment/verify-otp/{transactionId}', [GroupMemberController::class, 'verifyInstallmentOtp'])->name('member.installment.payment.verify-otp.post');
+
+        // Installment Payment Success Route
+        Route::get('/member/installment-payment/success/{transactionId}', [GroupMemberController::class, 'showInstallmentPaymentSuccess'])->name('member.installment.payment.success');
+
+        // Group Notifications Route
+        Route::get('/member/notifications', [GroupMemberController::class, 'groupNotifications'])->name('member.group.notifications');
     });
     
     // Withdrawal History Route

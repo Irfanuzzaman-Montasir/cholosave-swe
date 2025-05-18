@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 use App\Models\User;
 use App\Models\Savings;
+use App\Models\Investment;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class GroupController extends Controller
 {
@@ -251,5 +253,47 @@ class GroupController extends Controller
         $group = \App\Models\MyGroup::findOrFail($groupId);
 
         return view('groups.member.members', compact('group', 'members'));
+    }
+
+    public function investmentDetails($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('status', 'approved')
+            ->firstOrFail();
+
+        $investments = Investment::with('returns')
+            ->where('group_id', $groupId)
+            ->orderBy('investment_id', 'desc')
+            ->get();
+
+        return view('groups.member.investment-details', compact('group', 'membership', 'investments'));
+    }
+
+    public function exportInvestmentDetails($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('status', 'approved')
+            ->firstOrFail();
+
+        $investments = Investment::with('returns')
+            ->where('group_id', $groupId)
+            ->orderBy('investment_id', 'desc')
+            ->get();
+
+        $pdf = PDF::loadView('groups.member.investment-details-pdf', [
+            'group' => $group,
+            'investments' => $investments,
+            'totalInvestment' => $investments->sum('amount'),
+            'totalExpected' => $investments->sum('ex_profit'),
+            'totalActual' => $investments->sum(function($investment) {
+                return $investment->returns->sum('amount');
+            })
+        ]);
+
+        return $pdf->download('investment-details-' . $group->group_name . '.pdf');
     }
 } 
