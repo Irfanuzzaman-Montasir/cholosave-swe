@@ -11,6 +11,7 @@ class Poll extends Model
 
     protected $primaryKey = 'poll_id';
     public $timestamps = true;
+    protected $table = 'polls';
 
     protected $fillable = [
         'group_id',
@@ -26,6 +27,6 @@ class Poll extends Model
 
     public function votes()
     {
-        return $this->hasMany(PollVote::class, 'poll_id');
+        return $this->hasMany(PollVote::class, 'poll_id', 'poll_id');
     }
 } 

@@ -296,4 +296,56 @@ class GroupController extends Controller
 
         return $pdf->download('investment-details-' . $group->group_name . '.pdf');
     }
+
+    public function adminNotifications($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Fetch all notifications for the group
+        $notifications = \App\Models\Notification::where('target_group_id', $groupId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('groups.admin.group_notifications', compact('notifications', 'group'));
+    }
+
+    public function markNotificationAsRead($groupId, $notificationId)
+    {
+        $notification = \App\Models\Notification::where('notification_id', $notificationId)
+            ->where('target_group_id', $groupId)
+            ->firstOrFail();
+
+        $notification->update(['status' => 'read']);
+
+        return response()->json(['success' => true]);
+    }
+
+    public function clearAllNotifications($groupId)
+    {
+        \App\Models\Notification::where('target_group_id', $groupId)->delete();
+        
+        return response()->json(['success' => true]);
+    }
+
+    public function adminMembers($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Get all members with their details
+        $members = GroupMembership::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->with('user')
+            ->get()
+            ->map(function ($membership) {
+                return [
+                    'name' => $membership->user->name,
+                    'join_date' => $membership->created_at,
+                    'is_admin' => $membership->is_admin,
+                    'contribution' => $membership->total_contribution ?? 0,
+                    'remaining_installment' => $membership->remaining_installments ?? 0
+                ];
+            });
+
+        return view('groups.admin.members', compact('group', 'members'));
+    }
 } 

@@ -31,7 +31,7 @@ class ReportController extends Controller
             'DPSType' => $group->dps_type,
             'TimePeriod' => $group->time_period,
             'InstallmentAmount' => $group->amount,
-            'StartDate' => $group->start_date->format('d F, Y'),
+            'StartDate' => $group->start_date ? $group->start_date->format('d F, Y') : 'N/A',
             'GoalAmount' => $group->goal_amount,
             'EmergencyFund' => $group->emergency_fund,
             'TotalLoansApproved' => LoanRequest::where('group_id', $groupId)
@@ -51,14 +51,14 @@ class ReportController extends Controller
         $groupData['Profit'] = $groupData['TotalReturns'] - $groupData['TotalInvestments'];
 
         // Member Information
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->first();
+
         $memberData = [
             'MemberName' => Auth::user()->name,
-            'Role' => GroupMembership::where('group_id', $groupId)
-                ->where('user_id', $userId)
-                ->value('is_admin') ? 'Admin' : 'Member',
-            'JoinDate' => GroupMembership::where('group_id', $groupId)
-                ->where('user_id', $userId)
-                ->value('join_date')->format('d F, Y'),
+            'Role' => $membership && $membership->is_admin ? 'Admin' : 'Member',
+            'JoinDate' => $membership && $membership->join_date ? $membership->join_date->format('d F, Y') : 'N/A',
             'TotalSavings' => Savings::where('group_id', $groupId)
                 ->where('user_id', $userId)
                 ->sum('amount'),
@@ -83,7 +83,7 @@ class ReportController extends Controller
                     'transaction_id' => $transaction->transaction_id,
                     'amount' => $transaction->amount,
                     'payment_method' => $transaction->payment_method,
-                    'PaymentTime' => $transaction->payment_time->format('d F, Y'),
+                    'PaymentTime' => $transaction->payment_time ? $transaction->payment_time->format('d F, Y') : 'N/A',
                 ];
             });
 
@@ -97,7 +97,7 @@ class ReportController extends Controller
             ->map(function ($loan) {
                 return [
                     'amount' => $loan->amount,
-                    'ApproveDate' => $loan->approve_date->format('d F, Y'),
+                    'ApproveDate' => $loan->approve_date ? $loan->approve_date->format('d F, Y') : 'N/A',
                 ];
             });
 
@@ -111,7 +111,7 @@ class ReportController extends Controller
             ->map(function ($withdrawal) {
                 return [
                     'amount' => $withdrawal->amount,
-                    'ApproveDate' => $withdrawal->approve_date->format('d F, Y'),
+                    'ApproveDate' => $withdrawal->approve_date ? $withdrawal->approve_date->format('d F, Y') : 'N/A',
                 ];
             });
 

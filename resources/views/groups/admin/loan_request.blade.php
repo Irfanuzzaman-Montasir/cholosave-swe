@@ -1,143 +1,426 @@
-@extends('layouts.admin')
+@extends('layouts.group_admin')
+
+@section('title', 'Request Loan')
+
+@push('styles')
+<style>
+    .custom-font {
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* Form specific styles */
+    .form-container {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+        transition: all 0.3s ease;
+    }
+
+    .dark-mode .form-container {
+        background: #2d2d2d;
+        border-color: #4d4d4d;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-input {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        width: 100%;
+        transition: all 0.2s;
+        color: #000000;
+    }
+
+    .dark-mode .form-input {
+        background-color: #3d3d3d;
+        border-color: #4d4d4d;
+        color: #e0e0e0;
+    }
+
+    .form-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+
+    .dark-mode .form-input:focus {
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+    }
+
+    .quick-amount-btn {
+        background-color: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+        transition: all 0.2s;
+        color: #000000;
+    }
+
+    .dark-mode .quick-amount-btn {
+        background-color: #3d3d3d;
+        border-color: #4d4d4d;
+        color: #e0e0e0;
+    }
+
+    .quick-amount-btn:hover {
+        background-color: #f3f4f6;
+    }
+
+    .dark-mode .quick-amount-btn:hover {
+        background-color: #4d4d4d;
+    }
+
+    .quick-amount-btn.selected {
+        background-color: #3b82f6;
+        color: white;
+        border-color: #3b82f6;
+    }
+
+    .dark-mode .quick-amount-btn.selected {
+        background-color: #60a5fa;
+        border-color: #60a5fa;
+    }
+
+    .submit-btn {
+        background: linear-gradient(to right, #3b82f6, #2563eb);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        transition: all 0.2s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .submit-btn {
+        background: linear-gradient(to right, #60a5fa, #3b82f6);
+    }
+
+    .submit-btn:hover {
+        background: linear-gradient(to right, #2563eb, #1d4ed8);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .dark-mode .submit-btn:hover {
+        background: linear-gradient(to right, #3b82f6, #2563eb);
+    }
+
+    /* Text colors for dark mode */
+    .text-gray-700 {
+        color: #000000;
+    }
+
+    .text-gray-600 {
+        color: #000000;
+    }
+
+    .dark-mode .text-gray-700 {
+        color: #e0e0e0;
+    }
+
+    .dark-mode .text-gray-600 {
+        color: #cccccc;
+    }
+
+    .dark-mode .text-blue-600 {
+        color: #60a5fa;
+    }
+
+    .dark-mode .text-blue-800 {
+        color: #93c5fd;
+    }
+
+    /* Custom scrollbar for dark mode */
+    .dark-mode ::-webkit-scrollbar-track {
+        background: #2d2d2d;
+    }
+
+    .dark-mode ::-webkit-scrollbar-thumb {
+        background: #4d4d4d;
+    }
+
+    .dark-mode ::-webkit-scrollbar-thumb:hover {
+        background: #5d5d5d;
+    }
+
+    /* Force black text in light mode for form header, labels, and p */
+    .form-container label,
+    .form-container h2,
+    .form-container p,
+    .form-container .quick-amount-btn {
+        color: #000 !important;
+    }
+    .dark-mode .form-container label,
+    .dark-mode .form-container h2,
+    .dark-mode .form-container p {
+        color: inherit !important;
+    }
+
+    /* Error message styles */
+    .error-message {
+        color: #dc2626;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .error-message::before {
+        content: "⚠️";
+        font-size: 1rem;
+    }
+
+    .form-input.error {
+        border-color: #dc2626;
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="container mx-auto px-4 py-8">
-    <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Request Group Loan</h2>
+<div class="p-6 w-full max-w-4xl mx-auto">
+    <div class="form-container p-8">
+        <!-- Form Header -->
+        <div class="mb-8 text-center">
+            <h2 class="text-2xl font-semibold custom-font text-black dark:text-gray-200">
+                <i class="fa-solid fa-hand-holding-usd mr-2 text-blue-600 dark:text-blue-400"></i>
+                Loan Request Form
+            </h2>
+            <p class="mt-2 text-black dark:text-gray-400">Please fill in the details below to submit your loan request</p>
+        </div>
 
-        @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
-            </div>
-        @endif
-
-        @if(session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('error') }}</span>
-            </div>
-        @endif
-
-        <form action="{{ route('admin.loan.request.store') }}" method="POST" id="loanRequestForm" class="space-y-6">
+        <!-- Loan Request Form -->
+        <form method="POST" action="{{ route('admin.loan.request.store', $group->group_id) }}" class="space-y-6" id="loanRequestForm">
             @csrf
-            
-            <!-- Amount Selection -->
-            <div>
-                <label for="amount" class="block text-sm font-medium text-gray-700 mb-2">Loan Amount (BDT)</label>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
-                    @foreach([500, 1000, 1500, 2000] as $quickAmount)
-                        <button type="button" 
-                                class="quick-amount-btn px-4 py-2 border rounded-md text-center hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                data-amount="{{ $quickAmount }}">
-                            {{ number_format($quickAmount) }} BDT
-                        </button>
-                    @endforeach
+            <div class="space-y-6">
+                <!-- Amount Field -->
+                <div>
+                    <label for="amount" class="block text-sm font-medium text-black dark:text-gray-300 mb-2">
+                        Loan Amount (BDT)
+                    </label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-black dark:text-gray-400">৳</span>
+                        <input type="number" id="amount" name="amount"
+                            class="form-input pl-8 @error('amount') error @enderror"
+                            placeholder="Enter amount" required value="{{ old('amount') }}">
+                    </div>
+                    @error('amount')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
                 </div>
-                <input type="number" 
-                       name="amount" 
-                       id="amount" 
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       placeholder="Enter loan amount"
-                       min="1"
-                       step="0.01"
-                       required>
-                @error('amount')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-                <p class="mt-1 text-sm text-gray-500">Available Emergency Fund: {{ number_format($group->emergency_fund, 2) }} BDT</p>
-            </div>
 
-            <!-- Reason -->
-            <div>
-                <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">Reason for Loan</label>
-                <textarea name="reason" 
-                          id="reason" 
-                          rows="4" 
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          placeholder="Please provide a detailed reason for your loan request"
-                          required></textarea>
-                @error('reason')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
+                <!-- Quick Amount Selection -->
+                <div class="mt-3 flex flex-wrap gap-2">
+                    <div class="quick-amount-wrapper">
+                        <input type="radio" name="quick_amount" id="amount500" value="500" class="hidden peer"
+                            onclick="document.getElementById('amount').value=this.value">
+                        <label for="amount500"
+                            class="quick-amount-btn cursor-pointer text-black dark:text-gray-200">
+                            ৳ 500
+                        </label>
+                    </div>
 
-            <!-- Return Date -->
-            <div>
-                <label for="return_time" class="block text-sm font-medium text-gray-700 mb-2">Expected Return Date</label>
-                <input type="date" 
-                       name="return_time" 
-                       id="return_time" 
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       min="{{ date('Y-m-d') }}"
-                       required>
-                @error('return_time')
-                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                @enderror
-            </div>
+                    <div class="quick-amount-wrapper">
+                        <input type="radio" name="quick_amount" id="amount1000" value="1000" class="hidden peer"
+                            onclick="document.getElementById('amount').value=this.value">
+                        <label for="amount1000"
+                            class="quick-amount-btn cursor-pointer text-black dark:text-gray-200">
+                            ৳ 1,000
+                        </label>
+                    </div>
 
-            <!-- Terms and Conditions -->
-            <div class="flex items-start">
-                <div class="flex items-center h-5">
-                    <input type="checkbox" 
-                           name="terms_accepted" 
-                           id="terms_accepted" 
-                           class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                           required>
+                    <div class="quick-amount-wrapper">
+                        <input type="radio" name="quick_amount" id="amount1500" value="1500" class="hidden peer"
+                            onclick="document.getElementById('amount').value=this.value">
+                        <label for="amount1500"
+                            class="quick-amount-btn cursor-pointer text-black dark:text-gray-200">
+                            ৳ 1,500
+                        </label>
+                    </div>
+
+                    <div class="quick-amount-wrapper">
+                        <input type="radio" name="quick_amount" id="amount2000" value="2000" class="hidden peer"
+                            onclick="document.getElementById('amount').value=this.value">
+                        <label for="amount2000"
+                            class="quick-amount-btn cursor-pointer text-black dark:text-gray-200">
+                            ৳ 2,000
+                        </label>
+                    </div>
                 </div>
-                <div class="ml-3 text-sm">
-                    <label for="terms_accepted" class="font-medium text-gray-700">I agree to the terms and conditions</label>
-                    <p class="text-gray-500">By checking this box, you agree to repay the loan within the specified timeframe and understand that this request will be subject to group member approval.</p>
+
+                <!-- Reason Field -->
+                <div>
+                    <label for="reason" class="block text-sm font-medium text-black dark:text-gray-300 mb-2">
+                        Reason for Loan
+                    </label>
+                    <textarea id="reason" name="reason" rows="4"
+                        class="form-input @error('reason') error @enderror"
+                        placeholder="Please explain your reason for requesting a loan" required>{{ old('reason') }}</textarea>
+                    @error('reason')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <!-- Return Date Field -->
+                <div>
+                    <label for="return_date" class="block text-sm font-medium text-black dark:text-gray-300 mb-2">
+                        Expected Return Date
+                    </label>
+                    <input type="date" id="return_date" name="return_date"
+                        class="form-input @error('return_date') error @enderror"
+                        required value="{{ old('return_date') }}">
+                    @error('return_date')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
+                </div>
+
+                <!-- Terms and Conditions Acceptance -->
+                <div class="mb-6">
+                    <div class="flex items-center">
+                        <input type="checkbox" id="terms" name="terms"
+                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 @error('terms') error @enderror" required>
+                        <label for="terms" class="ml-2 block text-sm text-black dark:text-gray-300">
+                            I agree to the <a href="/terms_and_condition.php" target="_blank"
+                                class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">Terms and Conditions</a>
+                        </label>
+                    </div>
+                    @error('terms')
+                        <div class="error-message">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
-            @error('terms_accepted')
-                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-            @enderror
 
             <!-- Submit Button -->
-            <div class="flex justify-end">
-                <button type="submit" 
-                        class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Submit Loan Request
+            <div class="pt-4">
+                <button type="submit"
+                    class="submit-btn w-full">
+                    <i class="fas fa-paper-plane mr-2"></i> Submit Loan Request
                 </button>
             </div>
         </form>
     </div>
 </div>
+@endsection
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Quick amount selection
-    const quickAmountBtns = document.querySelectorAll('.quick-amount-btn');
-    const amountInput = document.getElementById('amount');
-
-    quickAmountBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            amountInput.value = this.dataset.amount;
+    // Add smooth scroll behavior
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
         });
     });
 
-    // Form submission with SweetAlert
+    // Handle quick amount selection
+    document.querySelectorAll('input[name="quick_amount"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Remove selected class from all labels
+            document.querySelectorAll('.quick-amount-btn').forEach(label => {
+                label.classList.remove('selected');
+            });
+            // Add selected class to the clicked label
+            if (this.checked) {
+                this.nextElementSibling.classList.add('selected');
+            }
+        });
+    });
+
+    // Form validation
     const form = document.getElementById('loanRequestForm');
     form.addEventListener('submit', function(e) {
         e.preventDefault();
         
-        // Basic validation
-        const amount = parseFloat(amountInput.value);
-        const emergencyFund = {{ $group->emergency_fund }};
+        // Clear previous error messages
+        document.querySelectorAll('.error-message').forEach(el => el.remove());
+        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
         
-        if (amount > emergencyFund) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Invalid Amount',
-                text: 'Loan amount cannot exceed the available emergency fund.'
-            });
-            return;
+        let hasError = false;
+        const amount = parseFloat(document.getElementById('amount').value);
+        const reason = document.getElementById('reason').value;
+        const returnDate = document.getElementById('return_date').value;
+        const terms = document.getElementById('terms').checked;
+        const emergencyFund = {{ $group->emergency_fund }};
+
+        // Validate amount
+        if (!amount || amount <= 0) {
+            showError('amount', 'Please enter a valid loan amount');
+            hasError = true;
+        } else if (amount > emergencyFund) {
+            showError('amount', 'Loan amount cannot exceed the available emergency fund');
+            hasError = true;
         }
 
-        // Submit form if validation passes
-        this.submit();
+        // Validate reason
+        if (!reason || reason.length < 10) {
+            showError('reason', 'Please provide a detailed reason (minimum 10 characters)');
+            hasError = true;
+        }
+
+        // Validate return date
+        if (!returnDate) {
+            showError('return_date', 'Please select a return date');
+            hasError = true;
+        } else {
+            const selectedDate = new Date(returnDate);
+            const today = new Date();
+            if (selectedDate <= today) {
+                showError('return_date', 'Return date must be after today');
+                hasError = true;
+            }
+        }
+
+        // Validate terms
+        if (!terms) {
+            showError('terms', 'You must accept the terms and conditions');
+            hasError = true;
+        }
+
+        if (!hasError) {
+            this.submit();
+        }
     });
-});
+
+    function showError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        field.classList.add('error');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+    }
 </script>
-@endpush
-@endsection 
+
+@if(session('success') && session('just_submitted'))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: '{{ session('success') }}',
+        confirmButtonText: 'OK'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "{{ route('admin.loan.request.create', $group->group_id) }}";
+        }
+    });
+</script>
+@endif
+
+@if(session('error') && !session('just_submitted'))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: '{{ session('error') }}',
+        confirmButtonText: 'OK'
+    });
+</script>
+@endif
+@endpush 
