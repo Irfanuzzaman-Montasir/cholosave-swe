@@ -46,7 +46,7 @@ class GroupMemberController extends Controller
     {
         $group = MyGroup::findOrFail($groupId);
         $withdrawals = Withdrawal::where('group_id', $groupId)
-            ->with('user') // Assuming there's a relationship to get user name
+            ->where('user_id', auth()->id())  // Filter by current user
             ->orderBy('created_at', 'desc')
             ->get();
 

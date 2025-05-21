@@ -40,11 +40,17 @@
             <!-- Header Section -->
             <div class="text-center mb-8">
                 <h1 class="text-4xl font-bold text-gray-800 mb-3">Group Notifications</h1>
-                <p class="text-gray-600 text-lg">
+                <div class="flex items-center justify-center gap-4">
                     <span class="inline-flex items-center justify-center px-4 py-1 bg-blue-100 text-blue-800 rounded-full font-semibold">
-                        {{ count($notifications) }} notification{{ count($notifications) !== 1 ? 's' : '' }}
+                        {{ count($notifications) }} unread notification{{ count($notifications) !== 1 ? 's' : '' }}
                     </span>
-                </p>
+                    @if(count($notifications) > 0)
+                        <button onclick="clearAllNotifications()" class="inline-flex items-center justify-center px-4 py-1 bg-red-100 text-red-800 rounded-full font-semibold hover:bg-red-200 transition-colors duration-200">
+                            <i class="fas fa-check-double mr-2"></i>
+                            Mark All as Read
+                        </button>
+                    @endif
+                </div>
             </div>
 
             <!-- Notifications List -->
@@ -54,7 +60,7 @@
                         <div class="icon-container mb-6">
                             <i class="fas fa-bell-slash text-6xl text-gray-300"></i>
                         </div>
-                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Notifications</h3>
+                        <h3 class="text-xl font-semibold text-gray-700 mb-2">No Unread Notifications</h3>
                         <p class="text-gray-500">Your group notification center is empty at the moment</p>
                     </div>
                 @else
@@ -112,4 +118,32 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function clearAllNotifications() {
+            if (confirm('Are you sure you want to mark all notifications as read?')) {
+                fetch(`{{ route('groups.admin.notifications.clear-all', $group->group_id) }}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Reload the page to show updated notifications
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while marking notifications as read.');
+                });
+            }
+        }
+    </script>
+    @endpush
 @endsection 

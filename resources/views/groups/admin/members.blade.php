@@ -4,6 +4,10 @@
 
 @push('styles')
 <style>
+    .custom-font {
+        font-family: 'Poppins', sans-serif;
+    }
+
     .table-container {
         scrollbar-width: thin;
         scrollbar-color: #CBD5E0 #EDF2F7;
@@ -26,34 +30,54 @@
         from { opacity: 0; transform: translateY(10px); }
         to { opacity: 1; transform: translateY(0); }
     }
+
+    .table-header {
+        background-color: #F9FAFB;
+        color: #000000;
+        font-weight: 600;
+    }
+
+    .table-cell {
+        color: #000000;
+    }
+
+    .member-card {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e5e7eb;
+    }
 </style>
 @endpush
 
 @section('content')
 <div class="max-w-7xl mx-auto p-6 animate-fade-in">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-semibold text-gray-800">
-                <i class="fa-solid fa-users mr-2 text-blue-600"></i>
-                Member Details
-            </h2>
-        </div>
+    <!-- Header Section -->
+    <div class="mb-8 text-center">
+        <h2 class="text-3xl font-semibold custom-font text-black mb-2">
+            <i class="fa-solid fa-users mr-2 text-blue-600"></i>
+            Group Members
+        </h2>
+        <p class="text-lg text-black">View and manage your group members</p>
+    </div>
+
+    <div class="member-card overflow-hidden">
         <div class="table-container overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+                <thead>
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">#</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contribution</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Installments Left</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">#</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Join Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Role</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Contribution</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Installments Left</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @forelse($members as $i => $member)
                         <tr class="hover:bg-gray-50 transition-colors duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap">{{ $i + 1 }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap table-cell">{{ $i + 1 }}</td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="flex items-center">
                                     <div class="flex-shrink-0 h-10 w-10">
@@ -62,13 +86,13 @@
                                         </div>
                                     </div>
                                     <div class="ml-4">
-                                        <div class="text-sm font-medium text-gray-900">
+                                        <div class="text-sm font-medium table-cell">
                                             {{ $member['name'] }}
                                         </div>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm table-cell">
                                 {{ \Carbon\Carbon::parse($member['join_date'])->format('M d, Y') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
@@ -80,16 +104,16 @@
                                     {{ $isAdmin ? 'Admin' : 'Member' }}
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            <td class="px-6 py-4 whitespace-nowrap text-sm table-cell">
                                 {{ number_format($member['contribution'] ?? 0) }} BDT
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="ml-2 text-sm text-gray-500">{{ $member['remaining_installment'] }}</span>
+                                <span class="ml-2 text-sm table-cell">{{ $member['remaining_installment'] }}</span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">No members found</td>
+                            <td colspan="6" class="px-6 py-4 text-center table-cell">No members found</td>
                         </tr>
                     @endforelse
                 </tbody>

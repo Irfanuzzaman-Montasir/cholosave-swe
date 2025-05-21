@@ -116,4 +116,12 @@ class MyGroup extends Model
     {
         return $this->hasMany(GroupPaymentSchedule::class, 'group_id');
     }
+
+    public function isAdmin($userId)
+    {
+        return $this->members()
+            ->where('user_id', $userId)
+            ->where('is_admin', true)
+            ->exists();
+    }
 } 

@@ -8,6 +8,7 @@ use App\Models\MyGroup;
 use App\Models\GroupMembership;
 use App\Models\Savings;
 use App\Models\Withdrawal;
+use App\Models\Notification;
 
 class WithdrawalController extends Controller
 {
@@ -55,7 +56,23 @@ class WithdrawalController extends Controller
     }
 
     /**
-     * Display the admin's withdrawal history for a specific group.
+     * Display the admin's personal withdrawal history for a specific group.
+     */
+    public function adminPersonalWithdrawalHistory($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Get only the admin's withdrawals for the group
+        $withdrawals = Withdrawal::where('group_id', $groupId)
+            ->where('user_id', auth()->id())  // Filter by current user (admin)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('groups.admin.withdrawal_history', compact('group', 'withdrawals'));
+    }
+
+    /**
+     * Display all member withdrawals for admin to manage.
      */
     public function adminWithdrawalHistory($groupId)
     {
@@ -67,7 +84,96 @@ class WithdrawalController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('groups.admin.withdrawal_history', compact('group', 'withdrawals'));
+        return view('groups.admin.member_withdrawals', compact('group', 'withdrawals'));
+    }
+
+    /**
+     * Approve a withdrawal request
+     */
+    public function approveWithdrawal($groupId, $withdrawal_id)
+    {
+        $withdrawal = Withdrawal::with('user')->findOrFail($withdrawal_id);
+        
+        // Verify the withdrawal belongs to the group
+        if ($withdrawal->group_id != $groupId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid withdrawal request'
+            ], 400);
+        }
+
+        // Check if withdrawal is still pending
+        if ($withdrawal->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This withdrawal request has already been processed'
+            ], 400);
+        }
+
+        // Update withdrawal status
+        $withdrawal->update([
+            'status' => 'approved',
+            'approve_date' => now()
+        ]);
+
+        // Create notification for both user and group
+        Notification::create([
+            'target_user_id' => $withdrawal->user_id,
+            'target_group_id' => $groupId,
+            'title' => 'Withdrawal Request Approved',
+            'message' => "{$withdrawal->user->name}'s withdrawal request of ৳" . number_format($withdrawal->amount, 2) . " has been approved. The amount will be sent to their {$withdrawal->payment_method} account ({$withdrawal->payment_number}).",
+            'status' => 'unread',
+            'type' => 'withdrawal'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Withdrawal request has been approved successfully'
+        ]);
+    }
+
+    /**
+     * Decline a withdrawal request
+     */
+    public function declineWithdrawal($groupId, $withdrawal_id)
+    {
+        $withdrawal = Withdrawal::with('user')->findOrFail($withdrawal_id);
+        
+        // Verify the withdrawal belongs to the group
+        if ($withdrawal->group_id != $groupId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid withdrawal request'
+            ], 400);
+        }
+
+        // Check if withdrawal is still pending
+        if ($withdrawal->status !== 'pending') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This withdrawal request has already been processed'
+            ], 400);
+        }
+
+        // Update withdrawal status
+        $withdrawal->update([
+            'status' => 'declined'
+        ]);
+
+        // Create notification for both user and group
+        Notification::create([
+            'target_user_id' => $withdrawal->user_id,
+            'target_group_id' => $groupId,
+            'title' => 'Withdrawal Request Declined',
+            'message' => "{$withdrawal->user->name}'s withdrawal request of ৳" . number_format($withdrawal->amount, 2) . " has been declined. Please contact the group admin for more information.",
+            'status' => 'unread',
+            'type' => 'withdrawal'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Withdrawal request has been declined'
+        ]);
     }
 
     // Member Methods

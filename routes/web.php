@@ -67,6 +67,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/admin/notifications', [GroupController::class, 'adminNotifications'])->name('groups.admin.notifications');
             Route::post('/admin/notifications/{notificationId}/mark-read', [GroupController::class, 'markNotificationAsRead'])->name('groups.admin.notifications.mark-read');
             Route::delete('/admin/notifications/clear-all', [GroupController::class, 'clearAllNotifications'])->name('groups.admin.notifications.clear-all');
+            Route::get('/admin/settings', [GroupController::class, 'adminSettings'])->name('groups.admin.settings');
+            Route::put('/admin/settings', [GroupController::class, 'updateSettings'])->name('groups.admin.settings.update');
+            Route::post('/admin/close-savings', [GroupController::class, 'closeSavings'])->name('groups.admin.close-savings');
             Route::get('/loan-request', [LoanRequestController::class, 'create'])->name('admin.loan.request.create');
             Route::post('/loan-request', [LoanRequestController::class, 'store'])->name('admin.loan.request.store');
             Route::get('/admin/members', [GroupController::class, 'adminMembers'])->name('groups.admin.members');
@@ -110,6 +113,23 @@ Route::middleware(['auth'])->group(function () {
 
     // Group Members Route
     Route::get('/groups/{group}/members', [GroupController::class, 'members'])->name('groups.members');
+
+    // Investment Routes
+    Route::get('/groups/{group}/admin/investment/create', [InvestmentController::class, 'create'])->name('admin.investment.create');
+    Route::post('/groups/{group}/admin/investment/store', [InvestmentController::class, 'store'])->name('admin.investment.store');
+    Route::get('/groups/{group}/admin/investment/return/create', [InvestmentController::class, 'createReturn'])->name('admin.investment.return.create');
+    Route::post('/groups/{group}/admin/investment/return/store', [InvestmentController::class, 'storeReturn'])->name('admin.investment.return.store');
+    Route::get('/groups/{group}/admin/investment/history', [InvestmentController::class, 'history'])->name('admin.investment.history');
+
+    // Member Loans Management Routes
+    Route::get('/groups/{group}/admin/loans', [GroupController::class, 'memberLoans'])->name('admin.member.loans');
+    Route::post('/groups/{group}/admin/loans/{loan}/approve', [GroupController::class, 'approveLoan'])->name('admin.loans.approve');
+    Route::post('/groups/{group}/admin/loans/{loan}/decline', [GroupController::class, 'declineLoan'])->name('admin.loans.decline');
+
+    // Join Request Routes
+    Route::get('/groups/{group}/join-requests', [GroupController::class, 'joinRequests'])->name('groups.admin.join-requests');
+    Route::put('/groups/{group}/join-requests/{request}/approve', [GroupController::class, 'approveJoinRequest'])->name('groups.admin.join-requests.approve');
+    Route::put('/groups/{group}/join-requests/{request}/reject', [GroupController::class, 'rejectJoinRequest'])->name('groups.admin.join-requests.reject');
 });
 
 // Admin Loan Routes
@@ -123,7 +143,7 @@ Route::prefix('admin/loan')->name('admin.loan.')->group(function () {
 Route::prefix('admin/withdrawal')->name('admin.withdrawal.')->group(function () {
     Route::get('/request/{group}', [WithdrawalController::class, 'adminCreate'])->name('request.create');
     Route::post('/request/{group}', [WithdrawalController::class, 'adminStore'])->name('request.store');
-    Route::get('/history/{group}', [WithdrawalController::class, 'adminWithdrawalHistory'])->name('history');
+    Route::get('/history/{group}', [WithdrawalController::class, 'adminPersonalWithdrawalHistory'])->name('history');
     Route::get('/requests/{group}', [WithdrawalController::class, 'adminRequests'])->name('requests');
     Route::post('/requests/{withdrawal}/approve', [WithdrawalController::class, 'approveWithdrawal'])->name('requests.approve');
     Route::post('/requests/{withdrawal}/reject', [WithdrawalController::class, 'rejectWithdrawal'])->name('requests.reject');
@@ -144,3 +164,8 @@ Route::prefix('admin/poll')->name('admin.poll.')->group(function () {
     Route::post('/update/{poll}', [PollController::class, 'update'])->name('update');
     Route::delete('/delete/{poll}', [PollController::class, 'delete'])->name('delete');
 });
+
+// Admin Withdrawal Routes
+Route::get('/groups/{groupId}/admin/withdrawals', [WithdrawalController::class, 'adminWithdrawalHistory'])->name('admin.withdrawals.index');
+Route::post('/groups/{groupId}/admin/withdrawals/{withdrawal_id}/approve', [WithdrawalController::class, 'approveWithdrawal'])->name('admin.withdrawals.approve');
+Route::post('/groups/{groupId}/admin/withdrawals/{withdrawal_id}/decline', [WithdrawalController::class, 'declineWithdrawal'])->name('admin.withdrawals.decline');

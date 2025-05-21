@@ -11,6 +11,9 @@ use App\Models\User;
 use App\Models\Savings;
 use App\Models\Investment;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\LoanRequest;
+use App\Models\Notification;
+use Illuminate\Support\Facades\DB;
 
 class GroupController extends Controller
 {
@@ -37,36 +40,53 @@ class GroupController extends Controller
             'emergency_fund' => 'required|numeric|min:0'
         ]);
 
-        // Create the group
-        $group = MyGroup::create([
-            'group_name' => $validated['group_name'],
-            'description' => $validated['description'],
-            'members' => $validated['members'],
-            'group_admin_id' => Auth::id(),
-            'dps_type' => $validated['dps_type'],
-            'time_period' => $validated['time_period'],
-            'amount' => $validated['amount'],
-            'start_date' => $validated['start_date'],
-            'bKash' => $validated['bKash'],
-            'Rocket' => $validated['Rocket'],
-            'Nagad' => $validated['Nagad'],
-            'goal_amount' => $validated['goal_amount'],
-            'emergency_fund' => $validated['emergency_fund']
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Create the admin membership
-        GroupMembership::create([
-            'group_id' => $group->group_id,
-            'user_id' => Auth::id(),
-            'status' => 'approved',
-            'is_admin' => true,
-            'leave_request' => 'no',
-            'join_date' => now(),
-            'time_period_remaining' => $validated['time_period']
-        ]);
+            // Create the group
+            $group = MyGroup::create([
+                'group_name' => $validated['group_name'],
+                'description' => $validated['description'],
+                'members' => $validated['members'],
+                'group_admin_id' => Auth::id(),
+                'dps_type' => $validated['dps_type'],
+                'time_period' => $validated['time_period'],
+                'amount' => $validated['amount'],
+                'start_date' => $validated['start_date'],
+                'bKash' => $validated['bKash'],
+                'Rocket' => $validated['Rocket'],
+                'Nagad' => $validated['Nagad'],
+                'goal_amount' => $validated['goal_amount'],
+                'emergency_fund' => $validated['emergency_fund']
+            ]);
 
-        return redirect()->route('groups.admin.dashboard', $group->group_id)
-            ->with('success', 'Group created successfully!');
+            // Create the admin membership
+            GroupMembership::create([
+                'group_id' => $group->group_id,
+                'user_id' => Auth::id(),
+                'status' => 'approved',
+                'is_admin' => true,
+                'leave_request' => 'no',
+                'join_date' => now(),
+                'time_period_remaining' => $validated['time_period']
+            ]);
+
+            // Create leaderboard entry with 20 points
+            \App\Models\Leaderboard::create([
+                'group_id' => $group->group_id,
+                'points' => 20.00
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('groups.admin.dashboard', $group->group_id)
+                ->with('success', 'Group created successfully!');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Error creating group: ' . $e->getMessage())
+                ->withInput();
+        }
     }
 
     public function adminDashboard($groupId)
@@ -301,8 +321,9 @@ class GroupController extends Controller
     {
         $group = MyGroup::findOrFail($groupId);
         
-        // Fetch all notifications for the group
+        // Fetch only unread notifications for the group
         $notifications = \App\Models\Notification::where('target_group_id', $groupId)
+            ->where('status', 'unread')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -322,7 +343,10 @@ class GroupController extends Controller
 
     public function clearAllNotifications($groupId)
     {
-        \App\Models\Notification::where('target_group_id', $groupId)->delete();
+        // Mark all notifications as read instead of deleting them
+        \App\Models\Notification::where('target_group_id', $groupId)
+            ->where('status', 'unread')
+            ->update(['status' => 'read']);
         
         return response()->json(['success' => true]);
     }
@@ -336,16 +360,294 @@ class GroupController extends Controller
             ->where('status', 'approved')
             ->with('user')
             ->get()
-            ->map(function ($membership) {
+            ->map(function ($membership) use ($groupId) {
+                // Calculate total contribution from savings
+                $contribution = Savings::where('group_id', $groupId)
+                    ->where('user_id', $membership->user_id)
+                    ->sum('amount');
+
                 return [
                     'name' => $membership->user->name,
                     'join_date' => $membership->created_at,
                     'is_admin' => $membership->is_admin,
-                    'contribution' => $membership->total_contribution ?? 0,
-                    'remaining_installment' => $membership->remaining_installments ?? 0
+                    'contribution' => $contribution,
+                    'remaining_installment' => $membership->time_period_remaining
                 ];
             });
 
         return view('groups.admin.members', compact('group', 'members'));
+    }
+
+    public function memberLoans($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        // Get all loan requests with user details
+        $loans = LoanRequest::with('user')
+            ->where('group_id', $groupId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('groups.admin.member_loans', compact('group', 'loans'));
+    }
+
+    public function approveLoan($groupId, $loanId)
+    {
+        try {
+            $group = MyGroup::findOrFail($groupId);
+            
+            // Verify user is admin
+            $membership = GroupMembership::where('group_id', $groupId)
+                ->where('user_id', auth()->id())
+                ->where('is_admin', true)
+                ->firstOrFail();
+
+            $loan = LoanRequest::findOrFail($loanId);
+
+            // Check if loan is already processed
+            if ($loan->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This loan request has already been processed.'
+                ]);
+            }
+
+            // Check emergency fund balance
+            $emergencyFund = $group->emergency_fund;
+            if ($emergencyFund < $loan->amount) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Insufficient emergency fund balance to approve this loan.'
+                ]);
+            }
+
+            // Update loan status
+            $loan->update([
+                'status' => 'approved',
+                'approve_date' => now()
+            ]);
+
+            // Create single notification for both user and group
+            Notification::create([
+                'target_user_id' => $loan->user_id,
+                'target_group_id' => $groupId,
+                'title' => 'Loan Request Approved',
+                'message' => "Loan request of ৳{$loan->amount} by {$loan->user->name} has been approved.",
+                'type' => 'loan_approval',
+                'status' => 'unread'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Loan request has been approved successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while processing your request.'
+            ]);
+        }
+    }
+
+    public function declineLoan($groupId, $loanId)
+    {
+        try {
+            $group = MyGroup::findOrFail($groupId);
+            
+            // Verify user is admin
+            $membership = GroupMembership::where('group_id', $groupId)
+                ->where('user_id', auth()->id())
+                ->where('is_admin', true)
+                ->firstOrFail();
+
+            $loan = LoanRequest::findOrFail($loanId);
+
+            // Check if loan is already processed
+            if ($loan->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'This loan request has already been processed.'
+                ]);
+            }
+
+            // Update loan status
+            $loan->update([
+                'status' => 'declined'
+            ]);
+
+            // Create single notification for both user and group
+            Notification::create([
+                'target_user_id' => $loan->user_id,
+                'target_group_id' => $groupId,
+                'title' => 'Loan Request Declined',
+                'message' => "Loan request of ৳{$loan->amount} by {$loan->user->name} has been declined.",
+                'type' => 'loan_approval',
+                'status' => 'unread'
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Loan request has been declined successfully.'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while processing your request.'
+            ]);
+        }
+    }
+
+    public function adminSettings($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        return view('groups.admin.settings', compact('group'));
+    }
+
+    public function updateSettings(Request $request, $groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        // Validate the request
+        $validated = $request->validate([
+            'amount' => 'required|numeric|min:0',
+            'start_date' => 'required|date',
+            'goal_amount' => 'required|numeric|min:0',
+            'emergency_fund' => 'required|numeric|min:0',
+            'bKash' => 'nullable|string|max:20',
+            'Rocket' => 'nullable|string|max:20',
+            'Nagad' => 'nullable|string|max:20',
+        ]);
+
+        // Update group settings
+        $group->update($validated);
+
+        return redirect()->back()->with('success', 'Group settings updated successfully.');
+    }
+
+    public function closeSavings($groupId)
+    {
+        // This is a placeholder for the close savings functionality
+        return response()->json([
+            'success' => false,
+            'message' => 'This feature is currently under development.'
+        ]);
+    }
+
+    public function joinRequests(MyGroup $group)
+    {
+        // Verify if user is admin
+        if (!$group->isAdmin(auth()->id())) {
+            return redirect()->back()->with('error', 'Unauthorized access');
+        }
+
+        // Get pending join requests
+        $pendingRequests = GroupMembership::with('user')
+            ->where('group_id', $group->group_id)
+            ->where('status', 'pending')
+            ->get();
+
+        return view('groups.admin.join_requests', compact('group', 'pendingRequests'));
+    }
+
+    public function approveJoinRequest(MyGroup $group, GroupMembership $request)
+    {
+        // Verify if user is admin
+        if (!$group->isAdmin(auth()->id())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        // Update membership status
+        $request->update([
+            'status' => 'approved',
+            'join_date' => now(),
+            'time_period_remaining' => $group->time_period
+        ]);
+
+        // Create notification for the group (targeted_group_id set, targeted_user_id null)
+        Notification::create([
+            'target_group_id' => $group->group_id,
+            'target_user_id' => null,
+            'title' => 'New Member Joined',
+            'message' => "{$request->user->name} has joined the group",
+            'type' => 'join_request',
+            'status' => 'unread'
+        ]);
+
+        // Create notification for the user (targeted_user_id set, targeted_group_id null)
+        Notification::create([
+            'target_user_id' => $request->user_id,
+            'target_group_id' => null,
+            'title' => 'Join Request Approved',
+            'message' => "Your request to join {$group->name} has been approved!",
+            'type' => 'join_request',
+            'status' => 'unread'
+        ]);
+
+        // Add points to leaderboard
+        $leaderboard = \App\Models\Leaderboard::firstOrCreate(
+            ['group_id' => $group->group_id],
+            ['points' => 0]
+        );
+        $leaderboard->increment('points', 5);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Join request approved successfully'
+        ]);
+    }
+
+    public function rejectJoinRequest(MyGroup $group, GroupMembership $request)
+    {
+        // Verify if user is admin
+        if (!$group->isAdmin(auth()->id())) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access'
+            ], 403);
+        }
+
+        // Update membership status
+        $request->update([
+            'status' => 'declined'
+        ]);
+
+        // Create notification for the user (targeted_user_id set, targeted_group_id null)
+        Notification::create([
+            'target_user_id' => $request->user_id,
+            'target_group_id' => null,
+            'title' => 'Join Request Declined',
+            'message' => "Your request to join {$group->name} has been declined.",
+            'type' => 'join_request',
+            'status' => 'unread'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Join request declined successfully'
+        ]);
     }
 } 
