@@ -29,7 +29,7 @@ class AiTipsController extends Controller
 
         // 3. Group Contributions
         $group_contributions = DB::table('group_membership as gm')
-            ->join('my_groups as g', 'gm.group_id', '=', 'g.group_id')
+            ->join('my_group as g', 'gm.group_id', '=', 'g.group_id')
             ->leftJoin('savings as s', function ($join) use ($user_id) {
                 $join->on('g.group_id', '=', 's.group_id')
                      ->where('s.user_id', '=', $user_id);
