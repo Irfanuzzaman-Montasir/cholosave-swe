@@ -6,19 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('group_payment_schedules', function (Blueprint $table) {
-            $table->id('schedule_id');
-            $table->foreignId('group_id')->nullable()->constrained('my_groups', 'group_id');
-            $table->date('payment_date');
+            $table->id();
+            $table->foreignId('group_id')->constrained('my_groups')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 10, 2);
-            $table->enum('status', ['pending', 'paid', 'overdue'])->default('pending');
+            $table->date('date');
+            $table->enum('status', ['pending', 'paid', 'missed'])->default('pending');
             $table->timestamps();
         });
     }
 
-    public function down(): void
+    public function down()
     {
         Schema::dropIfExists('group_payment_schedules');
     }
