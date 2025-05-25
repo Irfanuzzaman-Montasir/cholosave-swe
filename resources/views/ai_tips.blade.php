@@ -28,6 +28,7 @@
 </style>
 <script>
     window.FINANCIAL_DATA = @json($financialData);
+    window.CSRF_TOKEN = '{{ csrf_token() }}';
 </script>
 <div class="container mx-auto max-w-6xl mt-16 px-4"> {{-- Added horizontal padding here --}}
     <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6 rounded-md"> {{-- Added rounded-md for consistency --}}
@@ -176,13 +177,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('get-result').addEventListener('click', async () => {
         const questionSelect = document.getElementById('question-select');
-        const question = questionSelect.value === 'custom'
+        let question = questionSelect.value === 'custom'
             ? document.getElementById('custom-question').value.trim()
             : questionSelect.value;
+        // Input validation: prevent prompt injection and abuse
         if (!question) {
             alert('Please select or write a question.');
             return;
         }
+        // Limit question length and sanitize
+        if (question.length > 300) {
+            alert('Your question is too long. Please keep it under 300 characters.');
+            return;
+        }
+        // Basic sanitization: remove dangerous characters
+        question = question.replace(/[<>\n\r]/g, '');
         const aiResponse = document.getElementById('ai-response');
         aiResponse.classList.remove('hidden');
         aiResponse.innerHTML = '<div class="flex items-center justify-center p-4"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div><span class="ml-2 text-gray-700">Analyzing financial data...</span></div>';
@@ -195,7 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
             savings_type: savingsType,
             group_id: selectedGroupId !== 'all' ? selectedGroupId : null,
             savings_data: data,
-            question,
+            question, // sanitized
             investment_time: investmentTime,
             investment_duration: investmentDuration,
             investment_type: investmentType,
@@ -204,7 +213,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('http://localhost:5000/generate_tips', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': window.CSRF_TOKEN // Attach CSRF token for security
+                },
                 body: JSON.stringify(payload)
             });
             if (!response.ok) {

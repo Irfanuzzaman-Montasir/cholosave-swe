@@ -1,10 +1,21 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from groq import Groq
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_caching import Cache
 import os
+import hashlib
+import json
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/generate_tips": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000"]}})  # Restrict CORS to your frontend domain
+
+# Rate limiting: 10 requests per minute per IP
+limiter = Limiter(get_remote_address, app=app, default_limits=["10 per minute"])
+
+# Simple in-memory cache (for demo; use Redis/Memcached in production)
+cache = Cache(app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 60*5})
 
 # Initialize Groq client
 client = Groq(
@@ -101,6 +112,7 @@ def generate_financial_advice(savings_data, question, group_data=None, all_group
         return None
 
 @app.route('/generate_tips', methods=['POST'])
+@limiter.limit("10 per minute")
 def generate_tips():
     try:
         data = request.get_json()
@@ -139,21 +151,31 @@ def generate_tips():
         if question == 'investment_advice' and investment_data:
             question = f"What are the best investment options for me over a {investment_data['time']} {investment_data['duration']} in {investment_data['type']}?"
 
+        # Validate and sanitize input
+        if not isinstance(data.get('savings_data'), dict):
+            return jsonify({'status': 'error', 'error': 'Invalid savings_data'}), 400
+        if not isinstance(data.get('question'), str) or len(data.get('question')) > 500:
+            return jsonify({'status': 'error', 'error': 'Invalid question'}), 400
+
+        # Create a cache key based on the request data (hash for privacy)
+        cache_key = 'tips_' + hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest()
+        cached = cache.get(cache_key)
+        if cached:
+            return jsonify(cached)
+
         advice = generate_financial_advice(savings_data, question, group_data=group_data, 
                                            all_groups_data=savings_data['group_contributions'] if group_id == 'all' else None, 
                                            investment_data=investment_data)
 
         if advice:
-            return jsonify({
-                'status': 'success',
-                'advice': advice
-            })
+            result = {'status': 'success', 'advice': advice}
+            cache.set(cache_key, result)
+            return jsonify(result)
         else:
             return jsonify({
                 'status': 'error',
                 'error': 'Failed to generate advice'
             }), 500
-
     except Exception as e:
         return jsonify({
             'status': 'error',
