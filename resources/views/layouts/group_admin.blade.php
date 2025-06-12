@@ -115,16 +115,16 @@
                     <div class="sidebar-link flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200 cursor-pointer" id="loansToggle">
                         <i class="fas fa-hand-holding-dollar w-5 mr-2"></i>
                         <span>Loans</span>
-                        <i class="fas fa-chevron-down ml-auto chevron" id="loansChevron"></i>
+                        <i class="fas fa-chevron-down ml-auto transition-transform duration-200 ease-in-out" id="loansChevron"></i>
                     </div>
-                    <div class="submenu ml-8" id="loansSubmenu">
-                        <a href="{{ route('admin.loan.request.create', $group->group_id) }}" class="sidebar-link flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                    <div class="loans-submenu ml-8 hidden relative">
+                        <a href="{{ route('admin.loan.request.create', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Request Loan</span>
                         </a>
-                        <a href="{{ route('admin.loan.history', $group->group_id) }}" class="sidebar-link flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="{{ route('admin.loan.history', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>My Loans</span>
                         </a>
-                        <a href="{{ route('admin.member.loans', $group->group_id) }}" class="sidebar-link flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="{{ route('admin.member.loans', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Member Loans</span>
                         </a>
                     </div>
@@ -134,16 +134,16 @@
                     <div class="sidebar-link flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200 cursor-pointer" id="paymentsToggle">
                         <i class="fas fa-credit-card w-5 mr-2"></i>
                         <span>Payments</span>
-                        <i class="fas fa-chevron-down ml-auto chevron" id="paymentsChevron"></i>
+                        <i class="fas fa-chevron-down ml-auto transition-transform duration-200 ease-in-out" id="paymentsChevron"></i>
                     </div>
-                    <div class="submenu ml-8" id="paymentsSubmenu">
-                        <a href="#" class="sidebar-link flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                    <div class="payments-submenu ml-8 hidden relative">
+                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Make Payment</span>
                         </a>
-                        <a href="#" class="sidebar-link flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>My Payment History</span>
                         </a>
-                        <a href="#" class="sidebar-link flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Member Payment</span>
                         </a>
                     </div>
@@ -153,9 +153,8 @@
                     <div class="sidebar-link flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200 cursor-pointer" id="investmentsToggle">
                         <i class="fas fa-piggy-bank w-5 mr-2"></i>
                         <span>Investments</span>
-                        <i class="fas fa-chevron-down ml-auto chevron" id="investmentsChevron"></i>
+                        <i class="fas fa-chevron-down ml-auto transition-transform duration-200 ease-in-out" id="investmentsChevron"></i>
                     </div>
-                    <div class="submenu ml-8" id="investmentsSubmenu">
                     <div class="investments-submenu ml-8 hidden relative">
                         <a href="{{ route('admin.investment.create', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>New Investment</span>
