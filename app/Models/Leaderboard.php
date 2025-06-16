@@ -5,28 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Poll extends Model
+class Leaderboard extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'poll_id';
-    public $timestamps = true;
-    protected $table = 'polls';
+    protected $table = 'leaderboard';
 
     protected $fillable = [
         'group_id',
-        'poll_question',
-        'status'
+        'points'
     ];
 
-    // Relationships
+    protected $casts = [
+        'points' => 'decimal:2'
+    ];
+
     public function group()
     {
         return $this->belongsTo(MyGroup::class, 'group_id');
-    }
-
-    public function votes()
-    {
-        return $this->hasMany(PollVote::class, 'poll_id', 'poll_id');
     }
 } 

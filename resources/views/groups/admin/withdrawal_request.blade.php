@@ -1,4 +1,4 @@
-@extends('layouts.group_member')
+@extends('layouts.group_admin')
 @section('title', 'Withdrawal Request')
 
 @push('styles')
@@ -66,7 +66,7 @@
             </h2>
             <p class="mt-2 text-black">Please fill in the details below to submit your withdrawal request</p>
         </div>
-        <form method="POST" action="{{ route('member.withdrawal.request.store', $group->group_id) }}" class="space-y-6">
+        <form method="POST" action="{{ route('admin.withdrawal.request.store', $group->group_id) }}" class="space-y-6">
             @csrf
             <div>
                 <label for="amount" class="block text-sm font-medium text-black mb-2">Withdrawal Amount (BDT)</label>

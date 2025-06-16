@@ -11,6 +11,7 @@ class PollVote extends Model
 
     protected $primaryKey = 'vote_id';
     public $timestamps = true;
+    protected $table = 'polls_vote';
 
     protected $fillable = [
         'poll_id',
@@ -21,7 +22,7 @@ class PollVote extends Model
     // Relationships
     public function poll()
     {
-        return $this->belongsTo(Poll::class, 'poll_id');
+        return $this->belongsTo(Poll::class, 'poll_id', 'poll_id');
     }
 
     public function user()
