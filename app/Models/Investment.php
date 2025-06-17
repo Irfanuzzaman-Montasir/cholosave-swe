@@ -10,7 +10,10 @@ class Investment extends Model
     use HasFactory;
 
     protected $primaryKey = 'investment_id';
+<<<<<<< HEAD
     public $timestamps = true;
+=======
+>>>>>>> master
 
     protected $fillable = [
         'group_id',
@@ -24,10 +27,16 @@ class Investment extends Model
     protected $casts = [
         'amount' => 'decimal:2',
         'ex_profit' => 'double',
+<<<<<<< HEAD
         'ex_return_date' => 'date',
     ];
 
     // Relationships
+=======
+        'ex_return_date' => 'date'
+    ];
+
+>>>>>>> master
     public function group()
     {
         return $this->belongsTo(MyGroup::class, 'group_id');

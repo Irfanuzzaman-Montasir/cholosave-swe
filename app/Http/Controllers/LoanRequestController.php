@@ -10,6 +10,7 @@ use App\Models\GroupMembership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Group;
 
 class LoanRequestController extends Controller
 {
@@ -34,7 +35,12 @@ class LoanRequestController extends Controller
                 ->with('error', 'Cannot request loan while having a pending leave request.');
         }
 
-        return view('groups.member.loan_request', compact('group'));
+        // Determine which view to use based on the route
+        $view = request()->route()->getName() === 'admin.loan.request.create' 
+            ? 'groups.admin.loan_request' 
+            : 'groups.member.loan_request';
+
+        return view($view, compact('group'));
     }
 
     public function store(Request $request, $groupId)
@@ -48,7 +54,11 @@ class LoanRequestController extends Controller
             ->first();
 
         if ($existingLoan) {
-            return redirect()->route('member.loan.request.create', $groupId)
+            $redirectRoute = request()->route()->getName() === 'admin.loan.request.store' 
+                ? 'admin.loan.request.create' 
+                : 'member.loan.request.create';
+            
+            return redirect()->route($redirectRoute, $groupId)
                 ->with('error', 'You already have a pending or active loan request.');
         }
 
@@ -63,8 +73,19 @@ class LoanRequestController extends Controller
                 ->with('error', 'Cannot request loan while having a pending leave request.');
         }
 
+        // Validate request
         $request->validate([
-            'amount' => 'required|numeric|min:1|max:' . $group->emergency_fund,
+            'amount' => [
+                'required',
+                'numeric',
+                'min:1',
+                'max:' . $group->emergency_fund,
+                function ($attribute, $value, $fail) use ($group) {
+                    if ($value > $group->emergency_fund) {
+                        $fail('Loan amount cannot exceed the available emergency fund.');
+                    }
+                },
+            ],
             'reason' => 'required|string|min:10',
             'return_date' => 'required|date|after:today',
             'terms' => 'required|accepted'
@@ -100,7 +121,12 @@ class LoanRequestController extends Controller
 
             DB::commit();
 
-            return redirect()->route('member.loan.request.create', $groupId)
+            // Determine which route to redirect to based on the current route
+            $redirectRoute = request()->route()->getName() === 'admin.loan.request.store' 
+                ? 'admin.loan.request.create' 
+                : 'member.loan.request.create';
+
+            return redirect()->route($redirectRoute, $groupId)
                 ->with('success', 'Loan request submitted successfully. Waiting for admin approval.')
                 ->with('just_submitted', true);
 
@@ -109,5 +135,16 @@ class LoanRequestController extends Controller
             return redirect()->back()
                 ->with('error', 'Error processing loan request: ' . $e->getMessage());
         }
+    }
+
+    public function adminLoanHistory($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        $loans = LoanRequest::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('groups.admin.loan_history', compact('group', 'loans'));
     }
 } 

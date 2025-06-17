@@ -9,6 +9,8 @@ class TransactionInfo extends Model
 {
     use HasFactory;
 
+    protected $table = 'transaction_info';
+
     public $timestamps = true;
 
     protected $fillable = [
