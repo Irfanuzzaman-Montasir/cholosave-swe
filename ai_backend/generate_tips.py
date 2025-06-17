@@ -11,10 +11,15 @@ import json
 app = Flask(__name__)
 CORS(app, resources={r"/generate_tips": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000"]}})  # Restrict CORS to your frontend domain
 
-# Rate limiting: 10 requests per minute per IP
-limiter = Limiter(get_remote_address, app=app, default_limits=["10 per minute"])
+# Rate limiting: 10 requests per minute per IP using in-memory storage
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    storage_uri="memory://",
+    default_limits=["10 per minute"]
+)
 
-# Simple in-memory cache (for demo; use Redis/Memcached in production)
+# Simple in-memory cache
 cache = Cache(app, config={"CACHE_TYPE": "SimpleCache", "CACHE_DEFAULT_TIMEOUT": 60*5})
 
 # Initialize Groq client
@@ -68,7 +73,7 @@ def generate_financial_advice(savings_data, question, group_data=None, all_group
 
         {investment_summary}
 
-        User’s Question:
+        User's Question:
         "{question}"
 
          Instructions:
