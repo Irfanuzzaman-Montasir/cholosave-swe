@@ -108,4 +108,56 @@ class PollController extends Controller
             ], 500);
         }
     }
+
+    public function vote(Request $request, $pollId)
+    {
+        $request->validate([
+            'vote_option' => 'required|in:yes,no'
+        ]);
+
+        try {
+            $poll = Poll::findOrFail($pollId);
+            $userId = Auth::id();
+
+            // Check if user has already voted
+            $existingVote = $poll->votes()->where('user_id', $userId)->first();
+
+            if ($existingVote) {
+                // Update existing vote
+                $existingVote->update(['vote_option' => $request->vote_option]);
+            } else {
+                // Create new vote
+                $poll->votes()->create([
+                    'user_id' => $userId,
+                    'vote_option' => $request->vote_option
+                ]);
+            }
+
+            // Get updated vote statistics
+            $totalVotes = $poll->votes()->count();
+            $yesVotes = $poll->votes()->where('vote_option', 'yes')->count();
+            $noVotes = $poll->votes()->where('vote_option', 'no')->count();
+            
+            $yesPercentage = $totalVotes > 0 ? round(($yesVotes / $totalVotes) * 100) : 0;
+            $noPercentage = $totalVotes > 0 ? round(($noVotes / $totalVotes) * 100) : 0;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vote recorded successfully',
+                'data' => [
+                    'totalVotes' => $totalVotes,
+                    'yesVotes' => $yesVotes,
+                    'noVotes' => $noVotes,
+                    'yesPercentage' => $yesPercentage,
+                    'noPercentage' => $noPercentage,
+                    'userVote' => $request->vote_option
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record vote. Please try again.'
+            ], 500);
+        }
+    }
 } 

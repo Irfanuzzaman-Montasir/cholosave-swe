@@ -338,9 +338,16 @@
                     </div>
 
                     <div class="user-menu">
+                        <a href="#" class="nav-item">
+                            <i class="fas fa-money-bill"></i> Reminders
+                        </a>
                         <div class="notification-icon" id="notification-icon">
-                            <i class="fas fa-bell nav-item"></i>
-                            <span class="notification-badge">3</span>
+                            <a href="{{ route('notifications') }}" class="text-decoration-none">
+                                <i class="fas fa-bell nav-item"></i>
+                                @if($unreadNotifications > 0)
+                                    <span class="notification-badge">{{ $unreadNotifications }}</span>
+                                @endif
+                            </a>
                         </div>
                         
                         <div class="user-avatar" id="user-menu-toggle">
@@ -349,9 +356,6 @@
                         <div class="dropdown-menu" id="user-dropdown">
                             <a href="{{ route('profile') }}" class="dropdown-item">
                                 <i class="fas fa-user"></i> My Profile
-                            </a>
-                            <a href="{{ route('settings') }}" class="dropdown-item">
-                                <i class="fas fa-cog"></i> Settings
                             </a>
                             <form action="{{ route('logout') }}" method="POST" class="d-inline">
                                 @csrf
