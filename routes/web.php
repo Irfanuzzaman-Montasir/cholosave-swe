@@ -57,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
 // Admin Routes
 Route::prefix('admin')->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard/data', [AdminDashboardController::class, 'getDashboardData'])->name('admin.dashboard.data');
     
     // Expert Team Routes
     Route::get('/experts', [App\Http\Controllers\Admin\ExpertController::class, 'index'])->name('admin.experts.index');
@@ -69,4 +70,5 @@ Route::prefix('admin')->middleware(['auth', \App\Http\Middleware\CheckRole::clas
     // Contact Messages Routes
     Route::get('/contacts', [App\Http\Controllers\Admin\ContactController::class, 'index'])->name('admin.contacts.index');
     Route::delete('/contacts/{contact}', [App\Http\Controllers\Admin\ContactController::class, 'destroy'])->name('admin.contacts.destroy');
+    Route::post('/contacts/{contact}/mark-done', [App\Http\Controllers\Admin\ContactController::class, 'markAsDone'])->name('admin.contacts.markAsDone');
 });

@@ -18,6 +18,13 @@
     </div>
     @endif
 
+    @if(session('error'))
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    @endif
+
     <div class="card">
         <div class="card-body">
             <div class="table-responsive">
@@ -36,12 +43,19 @@
                         @forelse($experts as $expert)
                         <tr>
                             <td>
-                                <img src="{{ Storage::url($expert->image) }}" 
-                                     alt="{{ $expert->name }}" 
-                                     class="rounded-circle"
-                                     width="50" 
-                                     height="50"
-                                     style="object-fit: cover;">
+                                @if($expert->image)
+                                    <img src="{{ asset('uploads/experts/' . $expert->image) }}" 
+                                         alt="{{ $expert->name }}" 
+                                         class="rounded-circle"
+                                         width="50" 
+                                         height="50"
+                                         style="object-fit: cover;">
+                                @else
+                                    <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center"
+                                         style="width: 50px; height: 50px;">
+                                        <i class="fas fa-user text-white"></i>
+                                    </div>
+                                @endif
                             </td>
                             <td>{{ $expert->name }}</td>
                             <td>{{ $expert->email }}</td>

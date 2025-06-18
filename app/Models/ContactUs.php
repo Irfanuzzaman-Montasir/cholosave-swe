@@ -17,7 +17,8 @@ class ContactUs extends Model
     protected $fillable = [
         'name',
         'email',
-        'description'
+        'description',
+        'status'
     ];
 
     /**
@@ -32,5 +33,5 @@ class ContactUs extends Model
      *
      * @var bool
      */
-    public $timestamps = false;
+    public $timestamps = true;
 }

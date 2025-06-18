@@ -11,6 +11,20 @@
                     <h4 class="card-title">Add New Expert</h4>
                 </div>
                 <div class="card-body">
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
                     <form action="{{ route('admin.experts.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
@@ -44,7 +58,7 @@
 
                                 <div class="mb-3">
                                     <label for="phone" class="form-label">Phone</label>
-                                    <input type="text" 
+                                    <input type="tel" 
                                            class="form-control @error('phone') is-invalid @enderror" 
                                            id="phone" 
                                            name="phone" 
@@ -83,16 +97,20 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="image" class="form-label">Profile Image</label>
+                                    <label for="image" class="form-label">Photo</label>
                                     <input type="file" 
                                            class="form-control @error('image') is-invalid @enderror" 
                                            id="image" 
                                            name="image" 
                                            accept="image/*" 
-                                           required>
+                                           required
+                                           onchange="previewImage(event)">
                                     @error('image')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
+                                    <div id="imagePreview" class="mt-2" style="display: none;">
+                                        <img src="" alt="Preview" class="img-thumbnail" style="max-width: 200px;">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -110,14 +128,21 @@
 
 @push('scripts')
 <script>
-    // Preview image before upload
-    document.getElementById('image').addEventListener('change', function(e) {
+    function previewImage(event) {
+        const preview = document.getElementById('imagePreview');
+        const image = preview.querySelector('img');
+        const file = event.target.files[0];
         const reader = new FileReader();
+
         reader.onload = function(e) {
-            // You can add image preview logic here if needed
-        };
-        reader.readAsDataURL(e.target.files[0]);
-    });
+            image.src = e.target.result;
+            preview.style.display = 'block';
+        }
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
 </script>
 @endpush
 @endsection 

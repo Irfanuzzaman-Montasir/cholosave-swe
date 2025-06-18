@@ -11,6 +11,20 @@
                     <h4 class="card-title">Edit Expert</h4>
                 </div>
                 <div class="card-body">
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
                     <form action="{{ route('admin.experts.update', $expert) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
@@ -45,7 +59,7 @@
 
                                 <div class="mb-3">
                                     <label for="phone" class="form-label">Phone</label>
-                                    <input type="text" 
+                                    <input type="tel" 
                                            class="form-control @error('phone') is-invalid @enderror" 
                                            id="phone" 
                                            name="phone" 
@@ -84,24 +98,31 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="image" class="form-label">Profile Image</label>
+                                    <label for="image" class="form-label">Photo</label>
                                     <input type="file" 
                                            class="form-control @error('image') is-invalid @enderror" 
                                            id="image" 
                                            name="image" 
-                                           accept="image/*">
+                                           accept="image/*"
+                                           onchange="previewImage(event)">
                                     @error('image')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
 
                                     @if($expert->image)
                                     <div class="mt-2">
-                                        <img src="{{ Storage::url($expert->image) }}" 
+                                        <p class="text-muted small">Current image:</p>
+                                        <img src="{{ asset('uploads/experts/' . $expert->image) }}" 
                                              alt="{{ $expert->name }}" 
-                                             class="rounded"
-                                             width="100">
+                                             class="img-thumbnail"
+                                             style="max-width: 150px;">
                                     </div>
                                     @endif
+                                    
+                                    <div id="imagePreview" class="mt-2" style="display: none;">
+                                        <p class="text-muted small">New image preview:</p>
+                                        <img src="" alt="Preview" class="img-thumbnail" style="max-width: 200px;">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -119,14 +140,21 @@
 
 @push('scripts')
 <script>
-    // Preview image before upload
-    document.getElementById('image').addEventListener('change', function(e) {
+    function previewImage(event) {
+        const preview = document.getElementById('imagePreview');
+        const image = preview.querySelector('img');
+        const file = event.target.files[0];
         const reader = new FileReader();
+
         reader.onload = function(e) {
-            // You can add image preview logic here if needed
-        };
-        reader.readAsDataURL(e.target.files[0]);
-    });
+            image.src = e.target.result;
+            preview.style.display = 'block';
+        }
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
 </script>
 @endpush
 @endsection 

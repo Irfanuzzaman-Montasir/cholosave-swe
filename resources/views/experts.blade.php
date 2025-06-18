@@ -10,7 +10,17 @@
         @foreach($experts as $expert)
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
-                    <img src="{{ $expert->image }}" class="card-img-top" alt="{{ $expert->name }}">
+                    @if($expert->image)
+                        <img src="{{ asset('uploads/experts/' . $expert->image) }}" 
+                             class="card-img-top" 
+                             alt="{{ $expert->name }}"
+                             style="height: 250px; object-fit: cover;">
+                    @else
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center"
+                             style="height: 250px;">
+                            <i class="fas fa-user text-white" style="font-size: 3rem;"></i>
+                        </div>
+                    @endif
                     <div class="card-body">
                         <h5 class="card-title">{{ $expert->name }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ $expert->expertise }}</h6>
