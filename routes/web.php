@@ -47,6 +47,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
     Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
     
+    // AI Tips Route
+    Route::get('/ai-tips', [AiTipsController::class, 'show'])->name('ai.tips');
+    
     // Group Routes
     Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');

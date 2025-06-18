@@ -318,7 +318,7 @@
                         </div>
                     </div>
                     
-                    <a class="nav-item" href="/ai-tips">
+                    <a class="nav-item" href="{{ route('ai.tips') }}">
                         <i class="fas fa-robot"></i> AI Tips
                     </a>
                     
