@@ -48,7 +48,6 @@
         </div>
         <!-- Message Input Area -->
         <div class="border-t border-slate-200 p-4 bg-slate-50 rounded-b-xl">
-            <div style="color: red; font-weight: bold;">DEBUG: Chat form is rendered</div>
             <form class="message-form flex gap-3">
                 <div class="flex-1 relative">
                     <textarea 
