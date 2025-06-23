@@ -9,16 +9,13 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
-<<<<<<< HEAD
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-=======
 use App\Http\Controllers\LoanRequestController;
 use App\Http\Controllers\WithdrawalController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\NotificationController;
->>>>>>> master
 
 // Main Pages
 Route::get('/', function () {
@@ -148,7 +145,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
 });
 
-<<<<<<< HEAD
 // Admin Routes
 Route::prefix('admin')->middleware(['auth', \App\Http\Middleware\CheckRole::class.':admin'])->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
@@ -167,7 +163,6 @@ Route::prefix('admin')->middleware(['auth', \App\Http\Middleware\CheckRole::clas
     Route::delete('/contacts/{contact}', [App\Http\Controllers\Admin\ContactController::class, 'destroy'])->name('admin.contacts.destroy');
     Route::post('/contacts/{contact}/mark-done', [App\Http\Controllers\Admin\ContactController::class, 'markAsDone'])->name('admin.contacts.markAsDone');
 });
-=======
 // Admin Loan Routes
 Route::prefix('admin/loan')->name('admin.loan.')->group(function () {
     Route::get('/request/{group}', [LoanRequestController::class, 'create'])->name('request.create');
@@ -211,4 +206,3 @@ Route::prefix('member/poll')->name('member.poll.')->group(function () {
 Route::get('/groups/{groupId}/admin/withdrawals', [WithdrawalController::class, 'adminWithdrawalHistory'])->name('admin.withdrawals.index');
 Route::post('/groups/{groupId}/admin/withdrawals/{withdrawal_id}/approve', [WithdrawalController::class, 'approveWithdrawal'])->name('admin.withdrawals.approve');
 Route::post('/groups/{groupId}/admin/withdrawals/{withdrawal_id}/decline', [WithdrawalController::class, 'declineWithdrawal'])->name('admin.withdrawals.decline');
->>>>>>> master
