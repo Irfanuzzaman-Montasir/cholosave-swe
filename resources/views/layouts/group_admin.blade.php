@@ -137,13 +137,13 @@
                         <i class="fas fa-chevron-down ml-auto transition-transform duration-200 ease-in-out" id="paymentsChevron"></i>
                     </div>
                     <div class="payments-submenu ml-8 hidden relative">
-                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="{{ route('admin.installment.payment.create', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Make Payment</span>
                         </a>
-                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="{{ route('admin.payment.history', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>My Payment History</span>
                         </a>
-                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="{{ route('admin.member.payment', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Member Payment</span>
                         </a>
                     </div>

@@ -15,6 +15,7 @@ use App\Http\Controllers\AiTipsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\PollController;
+use App\Http\Controllers\NotificationController;
 
 // Main Pages
 Route::get('/', function () {
@@ -74,6 +75,16 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/loan-request', [LoanRequestController::class, 'create'])->name('admin.loan.request.create');
             Route::post('/loan-request', [LoanRequestController::class, 'store'])->name('admin.loan.request.store');
             Route::get('/admin/members', [GroupController::class, 'adminMembers'])->name('groups.admin.members');
+            
+            // Admin Payment Routes
+            Route::get('/admin/installment-payment', [GroupController::class, 'createAdminInstallmentPayment'])->name('admin.installment.payment.create');
+            Route::post('/admin/installment-payment/initiate', [GroupController::class, 'initiateAdminInstallmentPayment'])->name('admin.installment.payment.initiate');
+            Route::get('/admin/installment-payment/verify-otp/{transactionId}', [GroupController::class, 'showAdminInstallmentVerifyOtpForm'])->name('admin.installment.payment.verify-otp');
+            Route::post('/admin/installment-payment/verify-otp/{transactionId}', [GroupController::class, 'verifyAdminInstallmentOtp'])->name('admin.installment.payment.verify-otp.post');
+            Route::get('/admin/installment-payment/success/{transactionId}', [GroupController::class, 'showAdminInstallmentPaymentSuccess'])->name('admin.installment.payment.success');
+            Route::get('/admin/payment-history', [GroupController::class, 'adminPaymentHistory'])->name('admin.payment.history');
+            Route::get('/admin/member-payment', [GroupController::class, 'adminMemberPayment'])->name('admin.member.payment');
+            Route::get('/admin/member-payment/export', [GroupController::class, 'exportMemberPayment'])->name('admin.member.payment.export');
         });
         
         // Member routes
@@ -131,6 +142,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/groups/{group}/join-requests', [GroupController::class, 'joinRequests'])->name('groups.admin.join-requests');
     Route::put('/groups/{group}/join-requests/{request}/approve', [GroupController::class, 'approveJoinRequest'])->name('groups.admin.join-requests.approve');
     Route::put('/groups/{group}/join-requests/{request}/reject', [GroupController::class, 'rejectJoinRequest'])->name('groups.admin.join-requests.reject');
+
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
 });
 
 // Admin Loan Routes
@@ -164,6 +179,12 @@ Route::prefix('admin/poll')->name('admin.poll.')->group(function () {
     Route::get('/list/{group}', [PollController::class, 'list'])->name('list');
     Route::post('/update/{poll}', [PollController::class, 'update'])->name('update');
     Route::delete('/delete/{poll}', [PollController::class, 'delete'])->name('delete');
+    Route::post('/vote/{poll}', [PollController::class, 'vote'])->name('vote');
+});
+
+// Member Poll Routes
+Route::prefix('member/poll')->name('member.poll.')->group(function () {
+    Route::post('/vote/{poll}', [PollController::class, 'vote'])->name('vote');
 });
 
 // Admin Withdrawal Routes

@@ -14,6 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\LoanRequest;
 use App\Models\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class GroupController extends Controller
 {
@@ -97,7 +98,89 @@ class GroupController extends Controller
             ->where('is_admin', true)
             ->firstOrFail();
 
-        return view('groups.admin.dashboard', compact('group', 'membership'));
+        // Calculate total savings
+        $totalSavings = \App\Models\Savings::where('group_id', $groupId)->sum('amount');
+
+        // Get active members count
+        $activeMembers = \App\Models\GroupMembership::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->count();
+
+        // Get pending requests
+        $pendingLoans = \App\Models\LoanRequest::where('group_id', $groupId)
+            ->where('status', 'pending')
+            ->count();
+
+        $pendingWithdrawals = \App\Models\Withdrawal::where('group_id', $groupId)
+            ->where('status', 'pending')
+            ->count();
+
+        $pendingJoinRequests = \App\Models\GroupMembership::where('group_id', $groupId)
+            ->where('status', 'pending')
+            ->count();
+
+        $pendingRequests = $pendingLoans + $pendingWithdrawals + $pendingJoinRequests;
+
+        // Generate payment trends for last 6 months
+        $paymentTrends = [];
+        $maxPayment = 0;
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $amount = \App\Models\TransactionInfo::where('group_id', $groupId)
+                ->whereMonth('payment_time', $month->month)
+                ->whereYear('payment_time', $month->year)
+                ->sum('amount');
+            $paymentTrends[$month->format('M')] = $amount;
+            $maxPayment = max($maxPayment, $amount);
+        }
+
+        // Calculate time remaining
+        $timeRemaining = $membership->time_period_remaining;
+        $timeRemainingText = $timeRemaining > 1 ? 'months' : 'month';
+
+        // Calculate average monthly collection
+        $averageMonthlyCollection = \App\Models\TransactionInfo::where('group_id', $groupId)
+            ->where('payment_time', '>=', now()->subMonths(6))
+            ->sum('amount') / 6;
+
+        // Get active polls with vote statistics
+        $activePolls = \App\Models\Poll::where('group_id', $groupId)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($poll) {
+                $totalVotes = $poll->votes()->count();
+                $yesVotes = $poll->votes()->where('vote_option', 'yes')->count();
+                $noVotes = $poll->votes()->where('vote_option', 'no')->count();
+                
+                $poll->yes_percentage = $totalVotes > 0 ? round(($yesVotes / $totalVotes) * 100) : 0;
+                $poll->no_percentage = $totalVotes > 0 ? round(($noVotes / $totalVotes) * 100) : 0;
+                $poll->total_votes = $totalVotes;
+                $poll->yes_votes = $yesVotes;
+                $poll->no_votes = $noVotes;
+                
+                // Check if current user has voted
+                $poll->user_vote = $poll->votes()->where('user_id', auth()->id())->value('vote_option');
+                
+                return $poll;
+            });
+
+        return view('groups.admin.dashboard', compact(
+            'group',
+            'membership',
+            'totalSavings',
+            'activeMembers',
+            'pendingRequests',
+            'pendingLoans',
+            'pendingWithdrawals',
+            'pendingJoinRequests',
+            'paymentTrends',
+            'maxPayment',
+            'timeRemaining',
+            'timeRemainingText',
+            'averageMonthlyCollection',
+            'activePolls'
+        ));
     }
 
     public function memberDashboard($groupId)
@@ -108,7 +191,104 @@ class GroupController extends Controller
             ->where('is_admin', false)
             ->firstOrFail();
 
-        return view('groups.member.dashboard', compact('group', 'membership'));
+        // Calculate personal savings progress
+        $personalSavings = \App\Models\Savings::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->sum('amount');
+
+        // Calculate total group savings
+        $totalGroupSavings = \App\Models\Savings::where('group_id', $groupId)->sum('amount');
+
+        // Calculate withdraw amount (approved withdrawals)
+        $withdrawAmount = \App\Models\Withdrawal::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        // Calculate actual available savings (total savings - withdraw amount)
+        $availableSavings = $personalSavings - $withdrawAmount;
+
+        // Calculate installments completed
+        $installmentsCompleted = \App\Models\TransactionInfo::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->count();
+
+        // Calculate time remaining
+        $timeRemaining = $membership->time_period_remaining;
+        $timeRemainingText = $timeRemaining > 1 ? 'months' : 'month';
+
+        // Calculate loan due amount
+        $loanDue = \App\Models\LoanRequest::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        // Calculate group goal progress
+        $groupGoalProgress = $group->goal_amount > 0 ? ($totalGroupSavings / $group->goal_amount) * 100 : 0;
+
+        // Get payment history for last 6 months
+        $paymentHistory = [];
+        $maxPayment = 0;
+        for ($i = 5; $i >= 0; $i--) {
+            $month = now()->subMonths($i);
+            $amount = \App\Models\TransactionInfo::where('group_id', $groupId)
+                ->where('user_id', auth()->id())
+                ->whereMonth('payment_time', $month->month)
+                ->whereYear('payment_time', $month->year)
+                ->sum('amount');
+            $paymentHistory[$month->format('M')] = $amount;
+            $maxPayment = max($maxPayment, $amount);
+        }
+
+        // Get next payment due date (simplified calculation)
+        $lastPayment = \App\Models\TransactionInfo::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->orderBy('payment_time', 'desc')
+            ->first();
+        
+        $nextPaymentDue = $lastPayment ? 
+            $lastPayment->payment_time->addMonth() : 
+            now()->addMonth();
+
+        // Get active polls with vote statistics
+        $activePolls = \App\Models\Poll::where('group_id', $groupId)
+            ->where('status', 'active')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($poll) {
+                $totalVotes = $poll->votes()->count();
+                $yesVotes = $poll->votes()->where('vote_option', 'yes')->count();
+                $noVotes = $poll->votes()->where('vote_option', 'no')->count();
+                
+                $poll->yes_percentage = $totalVotes > 0 ? round(($yesVotes / $totalVotes) * 100) : 0;
+                $poll->no_percentage = $totalVotes > 0 ? round(($noVotes / $totalVotes) * 100) : 0;
+                $poll->total_votes = $totalVotes;
+                $poll->yes_votes = $yesVotes;
+                $poll->no_votes = $noVotes;
+                
+                // Check if current user has voted
+                $poll->user_vote = $poll->votes()->where('user_id', auth()->id())->value('vote_option');
+                
+                return $poll;
+            });
+
+        return view('groups.member.dashboard', compact(
+            'group',
+            'membership',
+            'personalSavings',
+            'totalGroupSavings',
+            'withdrawAmount',
+            'availableSavings',
+            'installmentsCompleted',
+            'timeRemaining',
+            'timeRemainingText',
+            'loanDue',
+            'groupGoalProgress',
+            'paymentHistory',
+            'maxPayment',
+            'nextPaymentDue',
+            'activePolls'
+        ));
     }
 
     public function show($groupId)
@@ -427,26 +607,42 @@ class GroupController extends Controller
                 ]);
             }
 
-            // Update loan status
-            $loan->update([
-                'status' => 'approved',
-                'approve_date' => now()
-            ]);
+            // Start database transaction
+            DB::beginTransaction();
 
-            // Create single notification for both user and group
-            Notification::create([
-                'target_user_id' => $loan->user_id,
-                'target_group_id' => $groupId,
-                'title' => 'Loan Request Approved',
-                'message' => "Loan request of ৳{$loan->amount} by {$loan->user->name} has been approved.",
-                'type' => 'loan_approval',
-                'status' => 'unread'
-            ]);
+            try {
+                // Update loan status
+                $loan->update([
+                    'status' => 'approved',
+                    'approve_date' => now()
+                ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Loan request has been approved successfully.'
-            ]);
+                // Deduct loan amount from emergency fund
+                $group->update([
+                    'emergency_fund' => $emergencyFund - $loan->amount
+                ]);
+
+                // Create single notification for both user and group
+                Notification::create([
+                    'target_user_id' => $loan->user_id,
+                    'target_group_id' => $groupId,
+                    'title' => 'Loan Request Approved',
+                    'message' => "Loan request of ৳{$loan->amount} by {$loan->user->name} has been approved. Emergency fund reduced by ৳{$loan->amount}.",
+                    'type' => 'loan_approval',
+                    'status' => 'unread'
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Loan request has been approved successfully. Emergency fund has been reduced by ৳' . number_format($loan->amount, 2) . '.'
+                ]);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                throw $e;
+            }
 
         } catch (\Exception $e) {
             return response()->json([
@@ -649,5 +845,314 @@ class GroupController extends Controller
             'success' => true,
             'message' => 'Join request declined successfully'
         ]);
+    }
+
+    // Admin Payment Methods
+    public function createAdminInstallmentPayment($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        $user = auth()->user();
+
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        // Generate a transaction ID
+        $transactionId = 'CHS' . Str::upper(Str::random(2)) . Str::lower(Str::random(2)) . rand(1000, 9999);
+
+        return view('groups.admin.initiate_installment_payment', compact('group', 'user', 'transactionId'));
+    }
+
+    public function initiateAdminInstallmentPayment(Request $request, $groupId)
+    {
+        $user = auth()->user();
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        $amount = $group->amount;
+        $selectedMethod = $request->input('payment_method');
+        $transactionId = 'TRX' . time() . rand(1000, 9999);
+
+        // Generate OTP
+        $otp = rand(100000, 999999);
+        $otpExpiry = now()->addMinutes(2);
+
+        // Store OTP in database
+        \App\Models\PaymentOtp::create([
+            'user_id' => $user->id,
+            'group_id' => $groupId,
+            'otp' => $otp,
+            'otp_expiry' => $otpExpiry,
+            'transaction_id' => $transactionId,
+            'amount' => $amount,
+            'payment_method' => $selectedMethod
+        ]);
+
+        // Send OTP via email
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\PaymentOtp($otp, $amount, $group->group_name));
+        } catch (\Exception $e) {
+            \Log::error('Failed to send admin payment OTP email: ' . $e->getMessage());
+        }
+
+        return redirect()->route('admin.installment.payment.verify-otp', [
+            'groupId' => $groupId,
+            'transactionId' => $transactionId
+        ]);
+    }
+
+    public function showAdminInstallmentVerifyOtpForm($groupId, $transactionId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        $user = auth()->user();
+        
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+        
+        // Check if there's a valid OTP in the database
+        $paymentOtp = \App\Models\PaymentOtp::where('user_id', $user->id)
+            ->where('group_id', $groupId)
+            ->where('transaction_id', $transactionId)
+            ->where('otp_expiry', '>', now())
+            ->first();
+
+        if (!$paymentOtp) {
+            return redirect()->route('admin.installment.payment.create', $groupId)
+                ->with('error', 'OTP expired or not generated. Please try again.');
+        }
+
+        return view('groups.admin.verify_installment_otp', compact('groupId', 'transactionId', 'group'));
+    }
+
+    public function verifyAdminInstallmentOtp(Request $request, $groupId, $transactionId)
+    {
+        $user = auth()->user();
+        $enteredOtp = $request->input('otp');
+
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        // Get the OTP record from database
+        $paymentOtp = \App\Models\PaymentOtp::where('user_id', $user->id)
+            ->where('group_id', $groupId)
+            ->where('transaction_id', $transactionId)
+            ->where('otp_expiry', '>', now())
+            ->first();
+
+        if (!$paymentOtp || $paymentOtp->otp !== $enteredOtp) {
+            return redirect()->back()->with('error', 'Invalid or expired OTP. Please try again.');
+        }
+
+        // Start database transaction
+        DB::beginTransaction();
+        try {
+            // Create transaction record
+            \App\Models\TransactionInfo::create([
+                'user_id' => $user->id,
+                'group_id' => $groupId,
+                'amount' => $paymentOtp->amount,
+                'transaction_id' => $transactionId,
+                'payment_method' => $paymentOtp->payment_method,
+                'payment_time' => now(),
+            ]);
+
+            // Create savings record
+            \App\Models\Savings::create([
+                'user_id' => $user->id,
+                'group_id' => $groupId,
+                'amount' => $paymentOtp->amount,
+            ]);
+
+            // Update group membership
+            $membership->decrement('time_period_remaining');
+
+            // Delete the used OTP
+            $paymentOtp->delete();
+
+            DB::commit();
+
+            return redirect()->route('admin.installment.payment.success', [
+                'groupId' => $groupId,
+                'transactionId' => $transactionId
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Admin payment processing failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Payment processing failed. Please try again.');
+        }
+    }
+
+    public function showAdminInstallmentPaymentSuccess($groupId, $transactionId)
+    {
+        // Fetch the group
+        $group = MyGroup::findOrFail($groupId);
+
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        // Fetch the transaction details using the transactionId
+        $transaction = \App\Models\TransactionInfo::where('transaction_id', $transactionId)
+            ->where('user_id', auth()->id())
+            ->where('group_id', $groupId)
+            ->first();
+
+        return view('groups.admin.payment_success', compact('groupId', 'group', 'transaction'));
+    }
+
+    public function adminPaymentHistory($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        $transactions = \App\Models\TransactionInfo::where('user_id', auth()->id())
+            ->where('group_id', $groupId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('groups.admin.payment_history', compact('group', 'transactions'));
+    }
+
+    public function adminMemberPayment($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        // Start with base query for all transactions in the group
+        $query = \App\Models\TransactionInfo::with('user')
+            ->where('group_id', $groupId);
+
+        // Apply search filters
+        if (request('transaction_search')) {
+            $searchTerm = request('transaction_search');
+            $query->where('transaction_id', 'LIKE', "%{$searchTerm}%");
+        }
+
+        if (request('payment_method_filter')) {
+            $query->where('payment_method', request('payment_method_filter'));
+        }
+
+        // Apply date filters
+        if (request('date_filter')) {
+            $dateFilter = request('date_filter');
+            switch ($dateFilter) {
+                case 'today':
+                    $query->whereDate('payment_time', today());
+                    break;
+                case 'week':
+                    $query->whereBetween('payment_time', [now()->startOfWeek(), now()->endOfWeek()]);
+                    break;
+                case 'month':
+                    $query->whereMonth('payment_time', now()->month)
+                          ->whereYear('payment_time', now()->year);
+                    break;
+                case 'year':
+                    $query->whereYear('payment_time', now()->year);
+                    break;
+            }
+        }
+
+        // Get paginated results
+        $transactions = $query->orderBy('payment_time', 'desc')
+                             ->paginate(15);
+
+        // Calculate statistics
+        $totalPayments = \App\Models\TransactionInfo::where('group_id', $groupId)->count();
+        $totalAmount = \App\Models\TransactionInfo::where('group_id', $groupId)->sum('amount');
+        $activeMembers = \App\Models\GroupMembership::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->count();
+        $averagePayment = $totalPayments > 0 ? $totalAmount / $totalPayments : 0;
+
+        return view('groups.admin.member_payment', compact(
+            'group', 
+            'transactions', 
+            'totalPayments', 
+            'totalAmount', 
+            'activeMembers', 
+            'averagePayment'
+        ));
+    }
+
+    public function exportMemberPayment($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        
+        // Verify user is admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', auth()->id())
+            ->where('is_admin', true)
+            ->firstOrFail();
+
+        // Get all transactions for the group
+        $transactions = \App\Models\TransactionInfo::with('user')
+            ->where('group_id', $groupId)
+            ->orderBy('payment_time', 'desc')
+            ->get();
+
+        // Generate CSV content
+        $filename = "group_{$groupId}_payment_history_" . date('Y-m-d_H-i-s') . ".csv";
+        
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
+        ];
+
+        $callback = function() use ($transactions) {
+            $file = fopen('php://output', 'w');
+            
+            // Add CSV headers
+            fputcsv($file, [
+                'Serial',
+                'Member Name',
+                'Transaction ID',
+                'Amount (BDT)',
+                'Payment Method',
+                'Payment Time',
+                'Status'
+            ]);
+
+            // Add data rows
+            foreach ($transactions as $index => $transaction) {
+                fputcsv($file, [
+                    $index + 1,
+                    $transaction->user->name ?? 'N/A',
+                    $transaction->transaction_id,
+                    number_format($transaction->amount, 2),
+                    $transaction->payment_method ?? 'N/A',
+                    $transaction->payment_time ? $transaction->payment_time->format('M d, Y H:i') : 'Not Set',
+                    'Completed'
+                ]);
+            }
+
+            fclose($file);
+        };
+
+        return response()->stream($callback, 200, $headers);
     }
 } 
