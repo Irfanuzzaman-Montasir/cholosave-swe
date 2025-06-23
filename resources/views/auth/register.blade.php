@@ -6,7 +6,7 @@
 <div class="login-container">
     <div class="login-card">
         <div class="login-image">
-            <img src="/test_project/assets/images/register.png" alt="Register">
+            <img src="{{ asset('images/auth/register.png') }}" alt="Register">
             <h2>Join CholoSave Today!</h2>
             <p>Create your account and start your financial journey</p>
         </div>

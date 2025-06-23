@@ -156,22 +156,6 @@
         <div class="dashboard-card">
             <div class="card-header">
                 <div class="card-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <h3 class="card-title">Groups</h3>
-            </div>
-            <div class="card-content">
-                <p>Manage your savings groups and collaborate with others.</p>
-                <div class="quick-actions">
-                    <a href="{{ route('groups.create') }}" class="action-button">Create Group</a>
-                    <a href="{{ route('groups.index') }}" class="action-button">Join Group</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="dashboard-card">
-            <div class="card-header">
-                <div class="card-icon">
                     <i class="fas fa-robot"></i>
                 </div>
                 <h3 class="card-title">AI Tips</h3>
@@ -200,6 +184,11 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{{ route('investments.index') }}" class="action-button">Investments</a>
+        <a href="{{ route('profile') }}" class="action-button">Profile</a>
     </div>
 </div>
 @endsection 

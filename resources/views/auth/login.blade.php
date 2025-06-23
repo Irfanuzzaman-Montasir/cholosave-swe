@@ -6,7 +6,7 @@
 <div class="login-container">
     <div class="login-card">
         <div class="login-image">
-            <img src="/test_project/assets/images/login.png" alt="Login">
+            <img src="{{ asset('images/auth/login.png') }}" alt="Login">
             <h2>Welcome Back!</h2>
             <p>Access your account and start managing your finances</p>
         </div>
