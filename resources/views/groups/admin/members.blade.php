@@ -72,6 +72,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Role</th>
                         <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Contribution</th>
                         <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Installments Left</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Action</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -110,6 +111,12 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="ml-2 text-sm table-cell">{{ $member['remaining_installment'] }}</span>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                @php $isAdmin = isset($member['is_admin']) ? $member['is_admin'] : 0; @endphp
+                                @if(!$isAdmin)
+                                    <button class="make-admin-btn px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition" data-user-id="{{ $member['user_id'] ?? '' }}">Make Admin</button>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
@@ -121,4 +128,61 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.make-admin-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const userId = this.getAttribute('data-user-id');
+                const groupId = @json($group->group_id);
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: 'You are about to transfer admin rights to this member. You will be logged out.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, transfer!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Processing...',
+                            text: 'Transferring admin rights...',
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
+                        fetch(`/groups/${groupId}/admin/transfer-admin`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                                'Accept': 'application/json',
+                            },
+                            body: JSON.stringify({ new_admin_user_id: userId })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success && data.redirect) {
+                                Swal.fire({
+                                    title: 'Success!',
+                                    text: 'Admin rights transferred! You will be logged out.',
+                                    icon: 'success',
+                                    allowOutsideClick: false
+                                }).then(() => {
+                                    window.location.href = data.redirect;
+                                });
+                            } else {
+                                Swal.fire('Error', data.error || 'Failed to transfer admin rights.', 'error');
+                            }
+                        })
+                        .catch(() => Swal.fire('Error', 'Failed to transfer admin rights.', 'error'));
+                    }
+                });
+            });
+        });
+    });
+</script>
+@endpush 

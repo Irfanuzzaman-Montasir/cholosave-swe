@@ -85,9 +85,9 @@
                             <div class="mt-2">
                                 <div class="flex items-center">
                                     <div class="w-full bg-gray-200 rounded-full h-2 mr-2">
-                                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ min(100, ($totalSavings / $group->goal_amount) * 100) }}%"></div>
+                                        <div class="bg-green-500 h-2 rounded-full" style="width: {{ $group->goal_amount > 0 ? min(100, ($totalSavings / $group->goal_amount) * 100) : 0 }}%"></div>
                                     </div>
-                                    <span class="text-xs text-gray-500">{{ number_format(($totalSavings / $group->goal_amount) * 100, 1) }}%</span>
+                                    <span class="text-xs text-gray-500">{{ $group->goal_amount > 0 ? number_format(($totalSavings / $group->goal_amount) * 100, 1) : '0.0' }}%</span>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1">Goal: ৳{{ number_format($group->goal_amount, 2) }}</p>
                             </div>
@@ -104,7 +104,7 @@
                         <div>
                             <p class="text-sm font-medium text-gray-600">Active Members</p>
                             <p class="text-2xl font-bold text-gray-900">{{ $activeMembers }}/{{ $group->members }}</p>
-                            <p class="text-xs text-gray-500 mt-1">{{ number_format(($activeMembers / $group->members) * 100, 1) }}% participation</p>
+                            <p class="text-xs text-gray-500 mt-1">{{ $group->members > 0 ? number_format(($activeMembers / $group->members) * 100, 1) : '0.0' }}% participation</p>
                         </div>
                         <div class="p-3 bg-blue-100 rounded-lg">
                             <i class="fas fa-users text-blue-600 text-2xl"></i>
@@ -141,9 +141,9 @@
                                 @endphp
                                 <div class="flex items-center">
                                     <div class="w-full bg-gray-200 rounded-full h-2 mr-2">
-                                        <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ min(100, $emergencyFundPercentage) }}%"></div>
+                                        <div class="bg-yellow-500 h-2 rounded-full" style="width: {{ $totalSavings > 0 ? min(100, $emergencyFundPercentage) : 0 }}%"></div>
                                     </div>
-                                    <span class="text-xs text-gray-500">{{ number_format($emergencyFundPercentage, 1) }}%</span>
+                                    <span class="text-xs text-gray-500">{{ $totalSavings > 0 ? number_format($emergencyFundPercentage, 1) : '0.0' }}%</span>
                                 </div>
                                 <p class="text-xs text-gray-500 mt-1">of total savings</p>
                             </div>
@@ -170,7 +170,7 @@
                     <div class="h-64 flex items-end justify-between space-x-2">
                         @foreach($paymentTrends as $month => $amount)
                         <div class="flex-1 flex flex-col items-center">
-                            <div class="w-full bg-blue-100 rounded-t" style="height: {{ ($amount / $maxPayment) * 200 }}px">
+                            <div class="w-full bg-blue-100 rounded-t" style="height: {{ $maxPayment > 0 ? ($amount / $maxPayment) * 200 : 0 }}px">
                                 <div class="w-full bg-blue-500 rounded-t" style="height: 100%"></div>
                             </div>
                             <p class="text-xs text-gray-600 mt-2">{{ $month }}</p>
@@ -189,11 +189,11 @@
                                 <circle class="progress-ring-circle" stroke="#e5e7eb" stroke-width="12" fill="transparent" r="48" cx="60" cy="60"/>
                                 <circle class="progress-ring-circle" stroke="#10b981" stroke-width="12" fill="transparent" r="48" cx="60" cy="60" 
                                         stroke-dasharray="{{ 2 * pi() * 48 }}" 
-                                        stroke-dashoffset="{{ 2 * pi() * 48 * (1 - min(1, $totalSavings / $group->goal_amount)) }}"/>
+                                        stroke-dashoffset="{{ $group->goal_amount > 0 ? (2 * pi() * 48 * (1 - min(1, $totalSavings / $group->goal_amount))) : (2 * pi() * 48) }}"/>
                             </svg>
                             <div class="absolute inset-0 flex items-center justify-center">
                                 <div class="text-center">
-                                    <span class="text-3xl font-bold text-gray-900">{{ number_format(($totalSavings / $group->goal_amount) * 100, 0) }}%</span>
+                                    <span class="text-3xl font-bold text-gray-900">{{ $group->goal_amount > 0 ? number_format(($totalSavings / $group->goal_amount) * 100, 0) : '0' }}%</span>
                                     <p class="text-sm text-gray-600">Complete</p>
                                 </div>
                             </div>
@@ -213,24 +213,24 @@
                         
                         <div class="flex justify-between items-center">
                             <span class="text-sm font-medium text-gray-700">Remaining</span>
-                            <span class="text-lg font-bold text-green-600">৳{{ number_format($group->goal_amount - $totalSavings, 2) }}</span>
+                            <span class="text-lg font-bold text-green-600">৳{{ $group->goal_amount > 0 ? number_format($group->goal_amount - $totalSavings, 2) : '0.00' }}</span>
                         </div>
                     </div>
                     
                     <div class="mt-6 pt-4 border-t border-gray-200">
                         <div class="flex items-center justify-between text-sm">
                             <span class="text-gray-600">Progress Status:</span>
-                            @if(($totalSavings / $group->goal_amount) * 100 >= 100)
+                            @if($group->goal_amount > 0 && ($totalSavings / $group->goal_amount) * 100 >= 100)
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                     <i class="fas fa-check-circle mr-1"></i>
                                     Goal Achieved!
                                 </span>
-                            @elseif(($totalSavings / $group->goal_amount) * 100 >= 75)
+                            @elseif($group->goal_amount > 0 && ($totalSavings / $group->goal_amount) * 100 >= 75)
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                     <i class="fas fa-rocket mr-1"></i>
                                     On Track
                                 </span>
-                            @elseif(($totalSavings / $group->goal_amount) * 100 >= 50)
+                            @elseif($group->goal_amount > 0 && ($totalSavings / $group->goal_amount) * 100 >= 50)
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                                     <i class="fas fa-clock mr-1"></i>
                                     Halfway There

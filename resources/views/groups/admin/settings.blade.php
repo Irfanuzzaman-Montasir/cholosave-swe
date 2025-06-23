@@ -81,11 +81,13 @@
                 </div>
             </form>
 
-            <!-- Close Savings Button -->
+            <!-- Close Savings Button (SweetAlert2) -->
             <div class="mt-8 text-center">
-                <button disabled class="px-6 py-3 bg-gray-400 text-white rounded-lg cursor-not-allowed opacity-75">
+                <button 
+                    id="close-savings-btn"
+                    class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2">
                     <i class="fas fa-lock mr-2"></i>
-                    Close Savings (Coming Soon)
+                    Close Savings
                 </button>
             </div>
         </div>
@@ -93,8 +95,112 @@
 </div>
 
 @push('scripts')
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-    // Remove the confirmCloseSavings function since the button is now disabled
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('close-savings-btn').addEventListener('click', async function(e) {
+        e.preventDefault();
+        // Step 1
+        let result = await Swal.fire({
+            title: 'Confirmation Required',
+            text: 'Have all members received their savings?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            reverseButtons: true
+        });
+        if (!result.isConfirmed) {
+            Swal.fire('Action Cancelled', 'All members must receive their savings before closing.', 'error');
+            return;
+        }
+        // Step 2
+        result = await Swal.fire({
+            title: 'Confirmation Required',
+            text: 'Have all members received their profit?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            reverseButtons: true
+        });
+        if (!result.isConfirmed) {
+            Swal.fire('Action Cancelled', 'All members must receive their profit before closing.', 'error');
+            return;
+        }
+        // Step 3
+        result = await Swal.fire({
+            title: 'Confirmation Required',
+            text: 'Do all members agree to close the savings?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            reverseButtons: true
+        });
+        if (!result.isConfirmed) {
+            Swal.fire('Action Cancelled', 'All members must agree to close the savings.', 'error');
+            return;
+        }
+        // Step 4
+        result = await Swal.fire({
+            title: 'Confirmation Required',
+            text: 'Is savings successfully completed?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'Yes',
+            cancelButtonText: 'No',
+            reverseButtons: true
+        });
+        if (!result.isConfirmed) {
+            Swal.fire('Action Cancelled', 'Savings must be successfully completed before closing.', 'error');
+            return;
+        }
+        // Final irreversible warning
+        result = await Swal.fire({
+            title: 'Warning!',
+            html: "Closing savings means <b class='text-red-600'>all group data will be permanently deleted</b> and you can't recover it. Are you absolutely sure?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, Close Savings',
+            cancelButtonText: 'Cancel',
+            reverseButtons: true,
+            focusCancel: true
+        });
+        if (!result.isConfirmed) {
+            Swal.fire('Cancelled', 'No changes were made.', 'info');
+            return;
+        }
+        // Show loading
+        Swal.fire({
+            title: 'Processing...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+        // Send AJAX request
+        try {
+            const response = await fetch(`{{ route('groups.admin.close-savings', $group->group_id) }}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
+                },
+                body: JSON.stringify({})
+            });
+            const data = await response.json();
+            if (data.success) {
+                Swal.fire('Success', data.message || 'Savings closed and all group data deleted successfully.', 'success').then(() => {
+                    window.location.href = '{{ route('groups.my') }}';
+                });
+            } else {
+                Swal.fire('Error', data.message || 'Failed to close savings. Please try again.', 'error');
+            }
+        } catch (e) {
+            Swal.fire('Error', 'An error occurred. Please try again.', 'error');
+        }
+    });
+});
 </script>
 @endpush
 @endsection 

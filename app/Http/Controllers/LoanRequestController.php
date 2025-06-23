@@ -145,6 +145,11 @@ class LoanRequestController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        return view('groups.admin.loan_history', compact('group', 'loans'));
+        $paymentMethods = [];
+        if (!empty($group->bKash)) $paymentMethods[] = 'bkash';
+        if (!empty($group->Rocket)) $paymentMethods[] = 'Rocket';
+        if (!empty($group->Nagad)) $paymentMethods[] = 'Nagad';
+
+        return view('groups.admin.loan_history', compact('group', 'loans', 'paymentMethods'));
     }
 } 

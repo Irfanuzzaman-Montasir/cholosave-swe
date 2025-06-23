@@ -328,7 +328,7 @@
                             <i class="fas fa-chevron-down ml-1"></i>
                         </div>
                         <div class="dropdown-content">
-                            <a href="/community/leaderboard" class="dropdown-item">
+                            <a href="{{ route('groups.leaderboard') }}" class="dropdown-item">
                                 <i class="fas fa-trophy"></i> Leaderboard
                             </a>
                             <a href="/community/forum" class="dropdown-item">
@@ -338,7 +338,7 @@
                     </div>
 
                     <div class="user-menu">
-                        <a href="#" class="nav-item">
+                        <a href="{{ route('reminders') }}" class="nav-item">
                             <i class="fas fa-money-bill"></i> Reminders
                         </a>
                         <div class="notification-icon" id="notification-icon">

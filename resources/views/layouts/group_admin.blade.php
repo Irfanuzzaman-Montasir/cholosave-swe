@@ -8,6 +8,7 @@
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
         /* Sidebar Animation Styles */
         .sidebar-link {
@@ -185,10 +186,10 @@
                         <i class="fas fa-chevron-down ml-auto transition-transform duration-200 ease-in-out" id="leaveChevron"></i>
                     </div>
                     <div class="leave-submenu ml-8 hidden relative">
-                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="{{ route('groups.admin.leave-request.form', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Request For Me</span>
                         </a>
-                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="{{ route('groups.admin.member-leave-requests', $group->group_id) }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Member Requests</span>
                         </a>
                     </div>

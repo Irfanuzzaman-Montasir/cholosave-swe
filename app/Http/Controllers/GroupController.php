@@ -386,6 +386,15 @@ class GroupController extends Controller
                 'updated_at' => now()
             ]);
 
+            // Create a poll for join approval
+            $userName = auth()->user()->name;
+            $pollQuestion = "$userName wants to join your group. Do you approve?";
+            \App\Models\Poll::create([
+                'group_id' => $groupId,
+                'poll_question' => $pollQuestion,
+                'status' => 'active'
+            ]);
+
             \Log::info('New membership created', [
                 'membership' => $membership->toArray(),
                 'group_time_period' => $group->time_period
@@ -547,6 +556,7 @@ class GroupController extends Controller
                     ->sum('amount');
 
                 return [
+                    'user_id' => $membership->user_id,
                     'name' => $membership->user->name,
                     'join_date' => $membership->created_at,
                     'is_admin' => $membership->is_admin,
@@ -743,11 +753,87 @@ class GroupController extends Controller
 
     public function closeSavings($groupId)
     {
-        // This is a placeholder for the close savings functionality
-        return response()->json([
-            'success' => false,
-            'message' => 'This feature is currently under development.'
-        ]);
+        $user = auth()->user();
+        $group = MyGroup::find($groupId);
+        if (!$group) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Group not found.'
+            ]);
+        }
+        // Check admin
+        $membership = GroupMembership::where('group_id', $groupId)
+            ->where('user_id', $user->id)
+            ->where('is_admin', true)
+            ->first();
+        if (!$membership) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized. Only group admin can close savings.'
+            ]);
+        }
+        // Check all withdrawals = all savings
+        $totalSavings = \App\Models\Savings::where('group_id', $groupId)->sum('amount');
+        $totalWithdrawals = \App\Models\Withdrawal::where('group_id', $groupId)->where('status', 'approved')->sum('amount');
+        if (abs($totalSavings - $totalWithdrawals) > 0.01) {
+            return response()->json([
+                'success' => false,
+                'message' => 'All savings have not been withdrawn by members.'
+            ]);
+        }
+        // Check no loans with status = approved
+        $activeLoans = \App\Models\LoanRequest::where('group_id', $groupId)->where('status', 'approved')->count();
+        if ($activeLoans > 0) {
+            return response()->json([
+                'success' => false,
+                'message' => 'There are still active (approved) loans. All loans must be settled before closing.'
+            ]);
+        }
+        // All checks passed, delete all group-related data in a transaction
+        try {
+            DB::beginTransaction();
+            // Delete poll votes
+            $pollIds = \App\Models\Poll::where('group_id', $groupId)->pluck('poll_id');
+            \App\Models\PollVote::whereIn('poll_id', $pollIds)->delete();
+            // Delete polls
+            \App\Models\Poll::where('group_id', $groupId)->delete();
+            // Delete investments and returns
+            $investmentIds = \App\Models\Investment::where('group_id', $groupId)->pluck('investment_id');
+            \App\Models\InvestmentReturn::whereIn('investment_id', $investmentIds)->delete();
+            \App\Models\Investment::where('group_id', $groupId)->delete();
+            // Delete savings
+            \App\Models\Savings::where('group_id', $groupId)->delete();
+            \App\Models\MySavings::where('group_id', $groupId)->delete();
+            // Delete transactions
+            \App\Models\TransactionInfo::where('group_id', $groupId)->delete();
+            // Delete memberships
+            \App\Models\GroupMembership::where('group_id', $groupId)->delete();
+            // Delete withdrawals
+            \App\Models\Withdrawal::where('group_id', $groupId)->delete();
+            // Delete loan requests
+            \App\Models\LoanRequest::where('group_id', $groupId)->delete();
+            // Delete leaderboard
+            \App\Models\Leaderboard::where('group_id', $groupId)->delete();
+            // Delete notifications
+            \App\Models\Notification::where('target_group_id', $groupId)->delete();
+            // Delete messages
+            \App\Models\Message::where('group_id', $groupId)->delete();
+            // Delete payment otps
+            \App\Models\PaymentOtp::where('group_id', $groupId)->delete();
+            // Delete the group itself
+            $group->delete();
+            DB::commit();
+            return response()->json([
+                'success' => true,
+                'message' => 'Savings closed and all group data deleted successfully.'
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to close savings: ' . $e->getMessage()
+            ]);
+        }
     }
 
     public function joinRequests(MyGroup $group)
@@ -976,6 +1062,14 @@ class GroupController extends Controller
                 'amount' => $paymentOtp->amount,
             ]);
 
+            // Add 1% of payment amount as points to leaderboard
+            $pointsToAdd = round($paymentOtp->amount * 0.01, 2);
+            $leaderboard = \App\Models\Leaderboard::firstOrCreate(
+                ['group_id' => $groupId],
+                ['points' => 0]
+            );
+            $leaderboard->increment('points', $pointsToAdd);
+
             // Update group membership
             $membership->decrement('time_period_remaining');
 
@@ -1154,5 +1248,299 @@ class GroupController extends Controller
         };
 
         return response()->stream($callback, 200, $headers);
+    }
+
+    public function transferAdmin(Request $request, $groupId)
+    {
+        $request->validate([
+            'new_admin_user_id' => 'required|exists:users,id',
+        ]);
+
+        $currentAdminId = auth()->id();
+        $newAdminId = $request->input('new_admin_user_id');
+
+        if ($currentAdminId == $newAdminId) {
+            return response()->json(['error' => 'You are already the admin.'], 422);
+        }
+
+        DB::beginTransaction();
+        try {
+            // Update group admin
+            $group = MyGroup::findOrFail($groupId);
+            $group->group_admin_id = $newAdminId;
+            $group->save();
+
+            // Update memberships
+            GroupMembership::where('group_id', $groupId)
+                ->where('user_id', $currentAdminId)
+                ->update(['is_admin' => false]);
+            GroupMembership::where('group_id', $groupId)
+                ->where('user_id', $newAdminId)
+                ->update(['is_admin' => true]);
+
+            // Notify new admin (user notification)
+            Notification::create([
+                'target_user_id' => $newAdminId,
+                'target_group_id' => null,
+                'title' => 'You are now the Group Admin',
+                'message' => 'You have been made the admin of the group "' . $group->group_name . '".',
+                'status' => 'unread',
+                'type' => 'admin_promotion',
+            ]);
+
+            // Notify the group (group notification)
+            Notification::create([
+                'target_user_id' => null,
+                'target_group_id' => $groupId,
+                'title' => 'Group Admin Changed',
+                'message' => 'The admin of the group "' . $group->group_name . '" has been changed.',
+                'status' => 'unread',
+                'type' => 'admin_promotion',
+            ]);
+
+            DB::commit();
+
+            // Log out the current user
+            Auth::logout();
+            Session::invalidate();
+            Session::regenerateToken();
+
+            return response()->json(['success' => true, 'redirect' => route('login')]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to transfer admin: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function showAdminLeaveRequestForm($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        return view('groups.admin.leave_request', compact('group'));
+    }
+
+    public function adminLeaveRequest(Request $request, $groupId)
+    {
+        $userId = auth()->id();
+        $group = MyGroup::findOrFail($groupId);
+
+        // Check for outstanding loans
+        $outstandingLoans = \App\Models\LoanRequest::where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->where('status', 'approved')
+            ->count();
+        if ($outstandingLoans > 0) {
+            return redirect()->back()->with('error', 'You cannot leave the group as you have outstanding loans.');
+        }
+
+        // Check if user is admin
+        if ($group->group_admin_id == $userId) {
+            return redirect()->back()->with('error', 'You are the admin. Please assign another admin before leaving the group.');
+        }
+
+        // (No success path for admin)
+        return redirect()->back()->with('error', 'You cannot leave the group as an admin.');
+    }
+
+    public function showMemberLeaveRequestForm($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        return view('groups.member.leave_request', compact('group'));
+    }
+
+    public function memberLeaveRequest(Request $request, $groupId)
+    {
+        $userId = auth()->id();
+        $group = MyGroup::findOrFail($groupId);
+
+        // Check for outstanding loans
+        $outstandingLoans = \App\Models\LoanRequest::where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->where('status', 'approved')
+            ->count();
+        if ($outstandingLoans > 0) {
+            return redirect()->back()->with('error', 'You cannot leave the group while you have outstanding loans. Please clear all loans before requesting to leave.');
+        }
+
+        // Check for remaining savings
+        $totalSavings = \App\Models\Savings::where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->sum('amount');
+        $totalWithdrawn = \App\Models\Withdrawal::where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->where('status', 'approved')
+            ->sum('amount');
+        $netBalance = $totalSavings - $totalWithdrawn;
+        if ($netBalance > 0) {
+            return redirect()->back()->with('error', 'First withdraw the money you saved before leaving the group.');
+        }
+
+        // Check for existing pending leave request
+        $membership = \App\Models\GroupMembership::where('group_id', $groupId)
+            ->where('user_id', $userId)
+            ->first();
+        if ($membership && $membership->leave_request === 'pending') {
+            return redirect()->back()->with('error', 'You already have a pending leave request');
+        }
+
+        // Submit leave request
+        if ($membership) {
+            $membership->leave_request = 'pending';
+            $membership->save();
+        }
+        return redirect()->back()->with('success', 'Leave request submitted successfully. Please wait for approval.');
+    }
+
+    public function memberLeaveRequests($groupId)
+    {
+        $group = MyGroup::findOrFail($groupId);
+        $leaveRequests = \App\Models\GroupMembership::where('group_id', $groupId)
+            ->where('leave_request', 'pending')
+            ->with('user')
+            ->get()
+            ->map(function ($membership) use ($groupId) {
+                $totalContribution = \App\Models\Savings::where('group_id', $groupId)
+                    ->where('user_id', $membership->user_id)
+                    ->sum('amount');
+                $totalWithdrawn = \App\Models\Withdrawal::where('group_id', $groupId)
+                    ->where('user_id', $membership->user_id)
+                    ->where('status', 'approved')
+                    ->sum('amount');
+                return [
+                    'membership_id' => $membership->membership_id,
+                    'name' => $membership->user->name,
+                    'join_date' => $membership->join_date,
+                    'installments_left' => $membership->time_period_remaining,
+                    'total_contribution' => $totalContribution,
+                    'total_withdrawn' => $totalWithdrawn,
+                    'leave_request' => $membership->leave_request,
+                ];
+            });
+        return view('groups.admin.member_leave_requests', compact('group', 'leaveRequests'));
+    }
+
+    public function approveMemberLeaveRequest($groupId, $membershipId)
+    {
+        DB::beginTransaction();
+        try {
+            $membership = \App\Models\GroupMembership::where('group_id', $groupId)
+                ->where('membership_id', $membershipId)
+                ->firstOrFail();
+            $userId = $membership->user_id;
+            $group = \App\Models\MyGroup::findOrFail($groupId);
+
+            // Delete all financial records for this user in this group
+            \App\Models\Savings::where('group_id', $groupId)->where('user_id', $userId)->delete();
+            \App\Models\LoanRequest::where('group_id', $groupId)->where('user_id', $userId)->delete();
+            \App\Models\Withdrawal::where('group_id', $groupId)->where('user_id', $userId)->delete();
+            \App\Models\TransactionInfo::where('group_id', $groupId)->where('user_id', $userId)->delete();
+
+            // Remove from group membership
+            $membership->delete();
+
+            // Deduct 10 points from leaderboard
+            $leaderboard = \App\Models\Leaderboard::where('group_id', $groupId)->first();
+            if ($leaderboard) {
+                $leaderboard->points = max(0, $leaderboard->points - 10);
+                $leaderboard->save();
+            }
+
+            // Notify the user
+            \App\Models\Notification::create([
+                'target_user_id' => $userId,
+                'target_group_id' => null,
+                'title' => 'Leave Request Approved',
+                'message' => 'Your leave request from group "' . $group->group_name . '" has been approved. You have been removed from the group.',
+                'status' => 'unread',
+                'type' => 'leave_request',
+            ]);
+
+            // Notify remaining group members
+            $memberIds = \App\Models\GroupMembership::where('group_id', $groupId)
+                ->where('status', 'approved')
+                ->pluck('user_id');
+            foreach ($memberIds as $memberId) {
+                \App\Models\Notification::create([
+                    'target_user_id' => $memberId,
+                    'target_group_id' => $groupId,
+                    'title' => 'Member Left Group',
+                    'message' => 'A member has left the group "' . $group->group_name . '".',
+                    'status' => 'unread',
+                    'type' => 'leave_request',
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->back()->with('success', 'Leave request approved, member removed, and records cleaned up.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Failed to process leave request: ' . $e->getMessage());
+        }
+    }
+
+    public function rejectMemberLeaveRequest($groupId, $membershipId)
+    {
+        $membership = \App\Models\GroupMembership::where('group_id', $groupId)
+            ->where('membership_id', $membershipId)
+            ->firstOrFail();
+        $membership->leave_request = 'no';
+        $membership->save();
+        // Optionally, send notification here
+        return redirect()->back()->with('success', 'Leave request rejected.');
+    }
+
+    public function leaderboardPage()
+    {
+        // Fetch all groups with their leaderboard points
+        $groups = \App\Models\MyGroup::with('leaderboard')
+            ->get()
+            ->map(function ($group) {
+                $group->points = $group->leaderboard ? $group->leaderboard->points : 0;
+                return $group;
+            })
+            ->sortByDesc('points')
+            ->values();
+
+        // Points rules
+        $rules = [
+            ['action' => 'Create Group', 'points' => '+20'],
+            ['action' => 'Join Group', 'points' => '+5'],
+            ['action' => 'Leave Group', 'points' => '-10'],
+            ['action' => 'Payment', 'points' => '+1% of payment amount'],
+        ];
+
+        return view('groups.leaderboard', compact('groups', 'rules'));
+    }
+
+    public function payLoan(Request $request)
+    {
+        $request->validate([
+            'loan_id' => 'required|exists:loan_request,id',
+            'payment_method' => 'required|in:bkash,Rocket,Nagad',
+            'repayment_amount' => 'required|numeric|min:1'
+        ]);
+
+        $loan = LoanRequest::findOrFail($request->loan_id);
+
+        // Only allow payment if loan is approved and not already repaid
+        if ($loan->status !== 'approved') {
+            return response()->json(['success' => false, 'message' => 'Loan is not approved or already repaid.']);
+        }
+
+        $loan->status = 'repaid';
+        $loan->payment_method = $request->payment_method;
+        $loan->transaction_id = (string) \Illuminate\Support\Str::uuid();
+        $loan->payment_time = now();
+        $loan->repayment_date = now();
+        $loan->repayment_amount = $request->repayment_amount;
+        $loan->save();
+
+        // Add the paid amount back to the group's emergency fund
+        $group = \App\Models\MyGroup::find($loan->group_id);
+        if ($group) {
+            $group->emergency_fund += $loan->repayment_amount;
+            $group->save();
+        }
+
+        return response()->json(['success' => true]);
     }
 } 

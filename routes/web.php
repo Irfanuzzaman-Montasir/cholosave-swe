@@ -15,6 +15,8 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\PollController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ReminderController;
+use App\Http\Controllers\SiteAdminController;
 
 // Main Pages
 Route::get('/', function () {
@@ -55,6 +57,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/groups', [GroupController::class, 'store'])->name('groups.store');
     Route::get('/my-groups', [GroupController::class, 'myGroups'])->name('groups.my');
     Route::get('/join_groups', [GroupController::class, 'joinGroups'])->name('groups.join');
+    Route::get('/groups/leaderboard', [GroupController::class, 'leaderboardPage'])->name('groups.leaderboard');
     
     // Group-specific routes
     Route::prefix('groups/{groupId}')->group(function () {
@@ -84,6 +87,13 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/admin/payment-history', [GroupController::class, 'adminPaymentHistory'])->name('admin.payment.history');
             Route::get('/admin/member-payment', [GroupController::class, 'adminMemberPayment'])->name('admin.member.payment');
             Route::get('/admin/member-payment/export', [GroupController::class, 'exportMemberPayment'])->name('admin.member.payment.export');
+            Route::post('/admin/transfer-admin', [GroupController::class, 'transferAdmin'])->name('groups.admin.transfer-admin');
+            Route::get('/admin/leave-request', [GroupController::class, 'showAdminLeaveRequestForm'])->name('groups.admin.leave-request.form');
+            Route::post('/admin/leave-request', [GroupController::class, 'adminLeaveRequest'])->name('groups.admin.leave-request');
+            // Member Leave Requests Management
+            Route::get('/admin/member-leave-requests', [GroupController::class, 'memberLeaveRequests'])->name('groups.admin.member-leave-requests');
+            Route::post('/admin/member-leave-requests/{membership}/approve', [GroupController::class, 'approveMemberLeaveRequest'])->name('groups.admin.member-leave-requests.approve');
+            Route::post('/admin/member-leave-requests/{membership}/reject', [GroupController::class, 'rejectMemberLeaveRequest'])->name('groups.admin.member-leave-requests.reject');
         });
         
         // Member routes
@@ -108,6 +118,10 @@ Route::middleware(['auth'])->group(function () {
 
         // Group Notifications Route
         Route::get('/member/notifications', [GroupMemberController::class, 'groupNotifications'])->name('member.group.notifications');
+
+        // Member Leave Request Routes
+        Route::get('/member/leave-request', [GroupController::class, 'showMemberLeaveRequestForm'])->name('groups.member.leave-request.form');
+        Route::post('/member/leave-request', [GroupController::class, 'memberLeaveRequest'])->name('groups.member.leave-request');
     });
     
     // Withdrawal History Route
@@ -145,6 +159,12 @@ Route::middleware(['auth'])->group(function () {
     // Notification routes
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
     Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount']);
+
+    // Reminders Route
+    Route::get('/reminders', [ReminderController::class, 'index'])->name('reminders');
+
+    // Site Admin Dashboard Route
+    Route::get('/site-admin/dashboard', [SiteAdminController::class, 'index'])->name('site_admin.dashboard');
 });
 
 // Admin Loan Routes
@@ -190,3 +210,5 @@ Route::prefix('member/poll')->name('member.poll.')->group(function () {
 Route::get('/groups/{groupId}/admin/withdrawals', [WithdrawalController::class, 'adminWithdrawalHistory'])->name('admin.withdrawals.index');
 Route::post('/groups/{groupId}/admin/withdrawals/{withdrawal_id}/approve', [WithdrawalController::class, 'approveWithdrawal'])->name('admin.withdrawals.approve');
 Route::post('/groups/{groupId}/admin/withdrawals/{withdrawal_id}/decline', [WithdrawalController::class, 'declineWithdrawal'])->name('admin.withdrawals.decline');
+
+Route::post('/group/loan/pay', [GroupController::class, 'payLoan'])->name('group.loan.pay');

@@ -59,7 +59,7 @@ class MyGroup extends Model
 
     public function leaderboard()
     {
-        return $this->hasOne(Leaderboard::class);
+        return $this->hasOne(Leaderboard::class, 'group_id', 'group_id');
     }
 
     public function loanRequests()

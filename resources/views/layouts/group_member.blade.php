@@ -65,7 +65,7 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" class="flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200" id="leaveRequestBtn">
+                    <a href="{{ route('groups.member.leave-request.form', $group->group_id) }}" class="flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                         <i class="fas fa-calendar-day w-5 mr-2 transition-transform duration-200 ease-in-out text-gray-400 hover:text-green-400"></i>
                         <span>Leave Request</span>
                     </a>

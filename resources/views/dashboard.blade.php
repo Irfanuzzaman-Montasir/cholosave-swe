@@ -5,152 +5,257 @@
 @section('content')
 <style>
     .dashboard-container {
-        min-height: calc(100vh - 5rem);
-        background-color: #f4f7f9;
-        padding: 2rem 1rem;
-    }
-
-    .welcome-section {
-        background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
-        border-radius: 1rem;
         padding: 2rem;
-        color: white;
+        background-color: #f8f9fa;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .dashboard-header {
+        text-align: center;
         margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-
-    .welcome-title {
+    .dashboard-header h1 {
+        font-weight: 600;
         font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
+        color: #343a40;
     }
-
-    .welcome-subtitle {
-        font-size: 1.1rem;
-        opacity: 0.9;
+    .dashboard-header p {
+        font-size: 1rem;
+        color: #6c757d;
     }
-
-    .dashboard-grid {
+    .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1.5rem;
-        margin-top: 2rem;
+        margin-bottom: 2rem;
     }
-
-    .dashboard-card {
+    .stat-card {
         background: white;
-        border-radius: 0.75rem;
+        border-radius: 0.5rem;
         padding: 1.5rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        transition: transform 0.3s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
     }
-
-    .dashboard-card:hover {
+    .stat-card:hover {
         transform: translateY(-5px);
     }
-
-    .card-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 1rem;
+    .stat-info p {
+        margin: 0;
+        color: #6c757d;
+        font-size: 0.9rem;
     }
-
-    .card-icon {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%);
-        border-radius: 0.5rem;
+    .stat-info span {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #343a40;
+    }
+    .stat-info .savings { color: #28a745; }
+    .stat-info .loans { color: #dc3545; }
+    .stat-icon {
+        font-size: 1.5rem;
+        padding: 1rem;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
-        margin-right: 1rem;
+    }
+    .icon-groups { background-color: #e7f3ff; color: #007bff; }
+    .icon-savings { background-color: #eaf6ec; color: #28a745; }
+    .icon-loans { background-color: #fbebee; color: #dc3545; }
+
+    .main-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 1.5rem;
     }
 
-    .card-title {
+    @media (max-width: 992px) {
+        .main-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .content-card {
+        background: white;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
+    }
+    .content-card h2 {
         font-size: 1.25rem;
         font-weight: 600;
-        color: #1E40AF;
+        margin-bottom: 1.5rem;
+        color: #343a40;
     }
 
-    .card-content {
-        color: #4B5563;
-        line-height: 1.6;
-    }
-
-    .quick-actions {
+    .financial-summary-item {
         display: flex;
-        gap: 1rem;
-        margin-top: 1rem;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid #e9ecef;
     }
-
-    .action-button {
-        padding: 0.5rem 1rem;
-        background: #1E40AF;
-        color: white;
-        border-radius: 0.375rem;
-        font-weight: 500;
+    .financial-summary-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .financial-summary-item:first-child {
+        padding-top: 0;
+    }
+    .summary-text {
+        display: flex;
+        align-items: center;
+        color: #495057;
+    }
+    .summary-text .fa-arrow-down { color: #dc3545; }
+    .summary-text .fa-arrow-up { color: #28a745; }
+    .summary-text span {
+        margin-left: 0.75rem;
+    }
+    .summary-amount {
+        font-weight: 600;
+        color: #343a40;
+    }
+    .quick-actions-list a {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+        margin: 0 -1rem;
+        border-radius: 0.5rem;
+        color: #495057;
         text-decoration: none;
-        transition: all 0.3s ease;
+        transition: background-color 0.2s;
     }
-
-    .action-button:hover {
-        background: #1E3A8A;
-        transform: translateY(-2px);
+    .quick-actions-list a:hover {
+        background-color: #f8f9fa;
+    }
+    .quick-actions-list i {
+        width: 20px;
+        margin-right: 1rem;
+        color: #6c757d;
+    }
+    .quick-actions-list .fa-plus { color: #007bff; }
+    .quick-actions-list .fa-trophy { color: #ffc107; }
+    .quick-actions-list .fa-info-circle { color: #17a2b8; }
+    .quick-actions-list .fa-comments { color: #6c757d; }
+    
+    .quick-actions-list .action-text {
+        flex-grow: 1;
+    }
+    .quick-actions-list .fa-chevron-right {
+        color: #ced4da;
+    }
+    .investment-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 0;
+    }
+    .investment-item i {
+        color: #007bff;
+        margin-right: 1rem;
     }
 </style>
 
 <div class="dashboard-container">
-    <div class="welcome-section">
-        <h1 class="welcome-title">Welcome back, {{ Auth::user()->name }}!</h1>
-        <p class="welcome-subtitle">Here's what's happening with your savings and investments today.</p>
+    <header class="dashboard-header">
+        <h1>Welcome Back, {{ Auth::user()->name }}</h1>
+        <p>Monitor Your Portfolio Performance & Group Analytics</p>
+    </header>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-info">
+                <p>Total Groups</p>
+                <span>{{ $joinedGroupsCount }}</span>
+            </div>
+            <div class="stat-icon icon-groups">
+                <i class="fas fa-users"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <p>Total Savings</p>
+                <span class="savings">BDT {{ number_format($totalSavings, 2) }}</span>
+            </div>
+            <div class="stat-icon icon-savings">
+                <i class="fas fa-piggy-bank"></i>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-info">
+                <p>Outstanding Loans</p>
+                <span class="loans">BDT {{ number_format($totalLoans, 2) }}</span>
+            </div>
+            <div class="stat-icon icon-loans">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+        </div>
     </div>
 
-    <div class="dashboard-grid">
-        <div class="dashboard-card">
-            <div class="card-header">
-                <div class="card-icon">
-                    <i class="fas fa-piggy-bank"></i>
+    <div class="main-grid">
+        <div class="main-column">
+            <div class="content-card">
+                <h2>Financial Summary</h2>
+                <div class="financial-summary-list">
+                    <div class="financial-summary-item">
+                        <div class="summary-text">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>Withdrawn Amount</span>
+                        </div>
+                        <span class="summary-amount">BDT {{ number_format($totalWithdrawals, 2) }}</span>
+                    </div>
+                    <div class="financial-summary-item">
+                        <div class="summary-text">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Total Contributions</span>
+                        </div>
+                        <span class="summary-amount">BDT {{ number_format($totalSavings, 2) }}</span>
+                    </div>
                 </div>
-                <h3 class="card-title">Total Savings</h3>
             </div>
-            <div class="card-content">
-                <p>Track your total savings across all groups and individual accounts.</p>
-                <div class="quick-actions">
-                    <a href="#" class="action-button">View Details</a>
-                    <a href="#" class="action-button">Add Savings</a>
-                </div>
+
+            <div class="content-card">
+                <h2>Group Investments</h2>
+                @forelse ($groupInvestments as $investment)
+                    <div class="investment-item">
+                        <i class="fas fa-building-columns"></i>
+                        <span>{{ $investment->investment_type }} - BDT {{ number_format($investment->amount, 2) }}</span>
+                    </div>
+                @empty
+                    <p>No group investments yet.</p>
+                @endforelse
             </div>
         </div>
 
-        <div class="dashboard-card">
-            <div class="card-header">
-                <div class="card-icon">
-                    <i class="fas fa-users"></i>
-                </div>
-                <h3 class="card-title">Active Groups</h3>
-            </div>
-            <div class="card-content">
-                <p>Manage your savings groups and see their progress.</p>
-                <div class="quick-actions">
-                    <a href="#" class="action-button">View Groups</a>
-                    <a href="#" class="action-button">Join Group</a>
-                </div>
-            </div>
-        </div>
-
-        <div class="dashboard-card">
-            <div class="card-header">
-                <div class="card-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <h3 class="card-title">Investment Portfolio</h3>
-            </div>
-            <div class="card-content">
-                <p>Monitor your investments and track their performance.</p>
-                <div class="quick-actions">
-                    <a href="#" class="action-button">View Portfolio</a>
-                    <a href="#" class="action-button">New Investment</a>
+        <div class="side-column">
+            <div class="content-card">
+                <h2>Quick Actions</h2>
+                <div class="quick-actions-list">
+                    <a href="{{ route('groups.join') }}">
+                        <i class="fas fa-plus"></i>
+                        <span class="action-text">Join Groups</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    <a href="{{ route('groups.leaderboard') }}">
+                        <i class="fas fa-trophy"></i>
+                        <span class="action-text">Leaderboard</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-info-circle"></i>
+                        <span class="action-text">View Details</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                    <a href="#">
+                        <i class="fas fa-comments"></i>
+                        <span class="action-text">Forum</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
