@@ -80,16 +80,16 @@
                         <i class="fas fa-chevron-down ml-auto chevron" id="expertTeamChevron"></i>
                     </div>
                     <div class="submenu ml-8" id="expertTeamSubmenu">
-                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                        <a href="{{ route('admin.expert.create') }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
                             <span>Add Expert</span>
                         </a>
-                        <a href="#" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
-                            <span>Edit Expert</span>
+                        <a href="{{ route('admin.expert.manage') }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                            <span>Manage Experts</span>
                         </a>
                     </div>
                 </li>
                 <li>
-                    <a href="#" class="sidebar-link flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                    <a href="{{ route('admin.report') }}" class="sidebar-link flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200 @if(request()->routeIs('admin.report')) active @endif">
                         <i class="fas fa-file-alt w-5 mr-2"></i>
                         <span>Report</span>
                     </a>

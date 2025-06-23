@@ -212,3 +212,13 @@ Route::post('/groups/{groupId}/admin/withdrawals/{withdrawal_id}/approve', [With
 Route::post('/groups/{groupId}/admin/withdrawals/{withdrawal_id}/decline', [WithdrawalController::class, 'declineWithdrawal'])->name('admin.withdrawals.decline');
 
 Route::post('/group/loan/pay', [GroupController::class, 'payLoan'])->name('group.loan.pay');
+
+// Admin Expert Team Routes
+Route::middleware(['auth'])->prefix('admin')->group(function () {
+    Route::get('/add-expert', [App\Http\Controllers\ExpertController::class, 'create'])->name('admin.expert.create');
+    Route::post('/add-expert', [App\Http\Controllers\ExpertController::class, 'store'])->name('admin.expert.store');
+    Route::get('/manage-experts', [App\Http\Controllers\ExpertController::class, 'manage'])->name('admin.expert.manage');
+    Route::delete('/delete-expert/{id}', [App\Http\Controllers\ExpertController::class, 'destroy'])->name('admin.expert.delete');
+    Route::post('/edit-expert/{id}', [App\Http\Controllers\ExpertController::class, 'update'])->name('admin.expert.update');
+    Route::get('/report', [App\Http\Controllers\SiteAdminController::class, 'report'])->name('admin.report');
+});

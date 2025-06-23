@@ -17,7 +17,8 @@ class ContactUs extends Model
     protected $fillable = [
         'name',
         'email',
-        'description'
+        'description',
+        'status', // enum: PENDING, COMPLETED
     ];
 
     /**
@@ -33,4 +34,8 @@ class ContactUs extends Model
      * @var bool
      */
     public $timestamps = false;
+
+    // Optionally, you can define status constants for easier use
+    public const STATUS_PENDING = 'PENDING';
+    public const STATUS_COMPLETED = 'COMPLETED';
 }

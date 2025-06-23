@@ -60,4 +60,10 @@ class SiteAdminController extends Controller
             'transactionsPerMonth' => $transactionsPerMonth,
         ]);
     }
+
+    public function report()
+    {
+        $contacts = \App\Models\ContactUs::orderBy('created_at', 'desc')->get();
+        return view('admin.report', compact('contacts'));
+    }
 } 

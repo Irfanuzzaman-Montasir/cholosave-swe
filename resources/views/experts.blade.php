@@ -1,5 +1,7 @@
 @extends('layouts.app')
 
+@php use Illuminate\Support\Str; @endphp
+
 @section('title', 'Our Experts - CholoSave')
 
 @section('content')
@@ -10,7 +12,7 @@
         @foreach($experts as $expert)
             <div class="col-md-4 mb-4">
                 <div class="card h-100">
-                    <img src="{{ $expert->image }}" class="card-img-top" alt="{{ $expert->name }}">
+                    <img src="{{ Str::startsWith($expert->image, 'http') ? $expert->image : asset($expert->image) }}" class="card-img-top" alt="{{ $expert->name }}">
                     <div class="card-body">
                         <h5 class="card-title">{{ $expert->name }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ $expert->expertise }}</h6>
