@@ -11,6 +11,7 @@ use App\Http\Controllers\GroupController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\LoanRequestController;
 use App\Http\Controllers\WithdrawalController;
+use App\Http\Controllers\AiTipsController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\GroupMemberController;
 use App\Http\Controllers\PollController;
@@ -51,6 +52,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
     Route::post('/profile/update-password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
     Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
+    
+    // AI Tips Route
+    Route::get('/ai-tips', [AiTipsController::class, 'show'])->name('ai.tips');
     
     // Group Routes
     Route::get('/groups/create', [GroupController::class, 'create'])->name('groups.create');
