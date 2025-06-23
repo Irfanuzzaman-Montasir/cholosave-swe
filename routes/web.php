@@ -18,6 +18,8 @@ use App\Http\Controllers\PollController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\SiteAdminController;
+use App\Http\Controllers\ForumController;
+use App\Http\Controllers\CampaignController;
 
 // Main Pages
 Route::get('/', function () {
@@ -169,6 +171,23 @@ Route::middleware(['auth'])->group(function () {
 
     // Site Admin Dashboard Route
     Route::get('/site-admin/dashboard', [SiteAdminController::class, 'index'])->name('site_admin.dashboard');
+
+    // Forum Routes
+    Route::prefix('forum')->group(function () {
+        Route::get('/', [ForumController::class, 'index'])->name('forum.index');
+        Route::get('/ask', [ForumController::class, 'create'])->name('forum.ask');
+        Route::post('/ask', [ForumController::class, 'store'])->name('forum.store');
+        Route::get('/my-questions', [ForumController::class, 'myQuestions'])->name('forum.my_questions');
+        Route::get('/{id}', [ForumController::class, 'show'])->name('forum.show');
+        Route::post('/{id}/reply', [ForumController::class, 'reply'])->name('forum.reply');
+    });
+
+    // Campaign Routes
+    Route::get('/admin/campaign/create', [CampaignController::class, 'create'])->name('admin.campaign.create');
+    Route::post('/admin/campaign/store', [CampaignController::class, 'store'])->name('admin.campaign.store');
+    Route::get('/admin/campaign/manage', [CampaignController::class, 'index'])->name('admin.campaign.manage');
+    Route::get('/admin/campaign/edit/{id}', [CampaignController::class, 'edit'])->name('admin.campaign.edit');
+    Route::patch('/admin/campaign/update/{id}', [CampaignController::class, 'update'])->name('admin.campaign.update');
 });
 
 // Admin Loan Routes

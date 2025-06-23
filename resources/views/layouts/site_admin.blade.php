@@ -88,6 +88,22 @@
                         </a>
                     </div>
                 </li>
+                <div class="px-4 py-2 text-xs text-gray-400 uppercase tracking-wider">Campaign</div>
+                <li>
+                    <div class="sidebar-link flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200 cursor-pointer" id="campaignToggle">
+                        <i class="fas fa-bullhorn w-5 mr-2"></i>
+                        <span>Campaign</span>
+                        <i class="fas fa-chevron-down ml-auto chevron" id="campaignChevron"></i>
+                    </div>
+                    <div class="submenu ml-8" id="campaignSubmenu">
+                        <a href="{{ route('admin.campaign.create') }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                            <span>Create Campaign</span>
+                        </a>
+                        <a href="{{ route('admin.campaign.manage') }}" class="flex items-center px-4 py-2 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200">
+                            <span>Manage Campaigns</span>
+                        </a>
+                    </div>
+                </li>
                 <li>
                     <a href="{{ route('admin.report') }}" class="sidebar-link flex items-center px-4 py-3 my-0.5 rounded-md text-gray-300 hover:bg-gray-800 hover:text-green-400 transition-colors duration-200 @if(request()->routeIs('admin.report')) active @endif">
                         <i class="fas fa-file-alt w-5 mr-2"></i>
@@ -117,6 +133,15 @@
                 toggle.addEventListener('click', function() {
                     submenu.classList.toggle('active');
                     chevron.classList.toggle('active');
+                });
+            }
+            const campaignToggle = document.getElementById('campaignToggle');
+            const campaignSubmenu = document.getElementById('campaignSubmenu');
+            const campaignChevron = document.getElementById('campaignChevron');
+            if (campaignToggle && campaignSubmenu && campaignChevron) {
+                campaignToggle.addEventListener('click', function() {
+                    campaignSubmenu.classList.toggle('active');
+                    campaignChevron.classList.toggle('active');
                 });
             }
         });

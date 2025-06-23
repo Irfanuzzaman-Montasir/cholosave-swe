@@ -331,7 +331,7 @@
                             <a href="{{ route('groups.leaderboard') }}" class="dropdown-item">
                                 <i class="fas fa-trophy"></i> Leaderboard
                             </a>
-                            <a href="/community/forum" class="dropdown-item">
+                            <a href="{{ route('forum.index') }}" class="dropdown-item">
                                 <i class="fas fa-comments"></i> Forum
                             </a>
                         </div>
