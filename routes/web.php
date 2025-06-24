@@ -20,6 +20,7 @@ use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\SiteAdminController;
 use App\Http\Controllers\ForumController;
 use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\ChatController;
 
 // Main Pages
 Route::get('/', function () {
@@ -188,6 +189,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/admin/campaign/manage', [CampaignController::class, 'index'])->name('admin.campaign.manage');
     Route::get('/admin/campaign/edit/{id}', [CampaignController::class, 'edit'])->name('admin.campaign.edit');
     Route::patch('/admin/campaign/update/{id}', [CampaignController::class, 'update'])->name('admin.campaign.update');
+
+    // Chat routes
+    Route::get('/groups/{groupId}/chat', [ChatController::class, 'index'])->name('chat.index');
+    Route::post('/groups/{groupId}/chat', [ChatController::class, 'store'])->name('chat.store');
 });
 
 // Admin Loan Routes
