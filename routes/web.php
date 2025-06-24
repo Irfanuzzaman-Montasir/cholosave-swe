@@ -250,3 +250,12 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::post('/edit-expert/{id}', [App\Http\Controllers\ExpertController::class, 'update'])->name('admin.expert.update');
     Route::get('/report', [App\Http\Controllers\SiteAdminController::class, 'report'])->name('admin.report');
 });
+
+// Fetch campaign contributions for modal
+Route::get('/campaign/{id}/contributions', [App\Http\Controllers\CampaignController::class, 'contributions']);
+
+// Store a campaign contribution
+Route::post('/campaign/{id}/contribute', [App\Http\Controllers\CampaignController::class, 'storeContribution'])->middleware('auth');
+
+// Download contribution receipt
+Route::get('/contribution/{id}/receipt', [App\Http\Controllers\CampaignController::class, 'downloadReceipt'])->middleware('auth');

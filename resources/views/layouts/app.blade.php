@@ -19,16 +19,16 @@
         }
 
         .header {
-            background-color: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            background-color: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
         .container-custom {
@@ -90,20 +90,23 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            border-radius: 0.375rem;
+            border-radius: 9999px;
             font-weight: 600;
             padding: 0.625rem 1.25rem;
             text-decoration: none;
             transition: all 0.3s ease;
+            border: none;
         }
 
         .btn-login {
-            background-color: #1E40AF;
+            background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
             color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
         }
 
         .btn-login:hover {
-            background-color: #1E3A8A;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(59, 130, 246, 0.3);
         }
 
         .btn-register {
@@ -371,13 +374,12 @@
                     <a class="nav-item" href="/experts">Experts</a>
                     <a class="nav-item" href="/contact">Contact Us</a>
                     <a class="btn-login" href="{{ route('login') }}">Login</a>
-                    <a class="btn-register" href="{{ route('register') }}">Register</a>
                 @endauth
             </nav>
         </div>
     </header>
 
-    <div class="container py-5">
+    <div style="width:100vw;max-width:100vw;padding:0;margin:0;">
         @yield('content')
     </div>
 
