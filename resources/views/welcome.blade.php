@@ -6,49 +6,261 @@
 @auth
 <div class="welcome-container">
     <div class="welcome-content">
-        <div class="welcome-text">
-            <h1>Welcome back, {{ $user->name }}! 👋</h1>
-            <p class="subtitle">Your financial journey continues here</p>
+        <div class="welcome-text" style="text-align:center;margin-bottom:3rem;margin-top:7rem;">
+            <h1 style="font-size:3rem;color:#1E40AF;margin-bottom:1rem;"><span id="typewriter-welcome"></span></h1>
+            <p class="subtitle" style="font-size:1.5rem;color:#6B7280;">Your financial journey continues here</p>
+        </div>
+        @php
+            $campaigns = \App\Models\Campaign::active()->orderBy('created_at', 'desc')->get();
+        @endphp
+        @if($campaigns->count())
+        <div class="campaigns-list" style="max-width:1200px;margin:10rem auto 0;">
+            <h2 style="font-size:1.3rem;font-weight:700;color:#e11d48;margin-bottom:1.2rem;text-align:center;">Active Campaigns</h2>
+            @foreach($campaigns as $campaign)
+            <div class="campaign-highlight" style="box-shadow:0 2px 16px #e0e7ef;border-radius:16px;padding:1.5rem;background:#fff;margin-bottom:1rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:nowrap;">
+                <div style="min-width:200px;">
+                    <h3 style="font-size:1.1rem;font-weight:700;color:#1E40AF;margin-bottom:0.25rem;">{{ $campaign->title }}</h3>
+                    <p style="color:#64748b;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">{{ $campaign->description }}</p>
+                </div>
+                <div style="flex:1;min-width:200px;">
+                    <div style="background:#e5e7eb;border-radius:8px;overflow:hidden;height:12px;width:100%;">
+                        @php
+                            $progress = $campaign->goal_amount > 0 ? min(100, round(($campaign->current_amount / $campaign->goal_amount) * 100)) : 0;
+                        @endphp
+                        <div style="width:{{ $progress }}%;background:#10b981;height:100%;transition:width 0.6s;"></div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#374151;margin-top:0.2rem;">
+                        <span>৳{{ number_format($campaign->current_amount,2) }}</span>
+                        <span>{{ $progress }}%</span>
+                        <span>Goal: ৳{{ number_format($campaign->goal_amount,2) }}</span>
+                    </div>
+                </div>
+                <div style="font-size:0.9rem;color:#6B7280;white-space:nowrap;">
+                    Deadline: {{ \Carbon\Carbon::parse($campaign->deadline)->format('M d, Y') }}
+                </div>
+                <div style="display:flex;gap:0.75rem;white-space:nowrap;">
+                    <button class="btn btn-primary view-campaign-btn" data-campaign-id="{{ $campaign->id }}" style="background:#3b82f6;color:#fff;padding:0.5rem 1rem;border-radius:8px;font-weight:600;cursor:pointer;border:none;font-size:0.9rem;">View</button>
+                    <button class="btn btn-success contribute-campaign-btn" data-campaign-id="{{ $campaign->id }}" data-campaign-title="{{ $campaign->title }}" data-bkash="{{ $campaign->bKash }}" data-rocket="{{ $campaign->Rocket }}" data-nagad="{{ $campaign->Nagad }}" style="background:#10b981;color:#fff;padding:0.5rem 1rem;border-radius:8px;font-weight:600;cursor:pointer;border:none;font-size:0.9rem;">Contribute</button>
+                </div>
+            </div>
+            @endforeach
+        </div>
+        @endif
+    </div>
+</div>
+
+<!-- Campaign Details Modal -->
+<div id="campaignModal" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(30,41,59,0.45);align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:16px;max-width:500px;width:95vw;padding:2rem;position:relative;box-shadow:0 8px 32px rgba(30,41,59,0.18);">
+        <button id="closeCampaignModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;color:#64748b;cursor:pointer;">&times;</button>
+        <h2 id="modalCampaignTitle" style="font-size:1.3rem;font-weight:700;color:#1E40AF;margin-bottom:0.5rem;"></h2>
+        <p id="modalCampaignDesc" style="color:#64748b;margin-bottom:1.2rem;"></p>
+        <h4 style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;">Contributions</h4>
+        <div id="modalContributionsTableWrapper">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#f1f5f9;">
+                        <th style="padding:0.5rem 0.3rem;text-align:left;font-size:0.95rem;">Name</th>
+                        <th style="padding:0.5rem 0.3rem;text-align:right;font-size:0.95rem;">Amount</th>
+                        <th style="padding:0.5rem 0.3rem;text-align:right;font-size:0.95rem;">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="modalContributionsTable">
+                    <tr><td colspan="3" style="text-align:center;color:#64748b;">Loading...</td></tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<style>
-.welcome-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
-    min-height: calc(100vh - 5rem);
-    display: flex;
-    align-items: center;
-}
+<!-- Campaign Contribution Modal (Bootstrap) -->
+<div class="modal fade" id="contributeModal" tabindex="-1" aria-labelledby="contributeModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="contributeModalLabel">Contribute to <span id="contributeCampaignTitle"></span></h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="contributeForm">
+          <input type="hidden" id="contribute_campaign_id" name="campaign_id">
+          <input type="hidden" id="contribute_payment_method" name="payment_method">
+          <div class="mb-3">
+            <label class="form-label">Contribution Amount</label>
+            <input type="number" id="contribute_amount" name="amount" class="form-control" min="1" step="0.01" required>
+            <div class="form-text">Enter the amount you want to contribute.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Select Payment Method</label>
+            <div class="d-flex gap-3" id="contributePaymentMethods">
+              <!-- Payment method buttons will be injected here -->
+            </div>
+          </div>
+          <div class="mb-3">
+            <div class="alert alert-info" role="alert">
+              <strong>Contribution Amount:</strong> ৳<span id="contributeSummaryAmount">0.00</span>
+            </div>
+          </div>
+          <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-success">Contribute Now</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
-.welcome-content {
-    width: 100%;
-}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var welcomeText = 'Welcome back, {{ addslashes($user->name) }}!';
+    var i = 0;
+    var speed = 70; // typing speed in ms
+    var target = document.getElementById('typewriter-welcome');
+    function typeWriter() {
+        if (i < welcomeText.length) {
+            target.textContent += welcomeText.charAt(i);
+            i++;
+            setTimeout(typeWriter, speed);
+        }
+    }
+    if(target) typeWriter();
 
-.welcome-text {
-    text-align: center;
-    margin-bottom: 3rem;
-}
+    // Modal logic
+    const modal = document.getElementById('campaignModal');
+    const closeModalBtn = document.getElementById('closeCampaignModal');
+    const modalTitle = document.getElementById('modalCampaignTitle');
+    const modalDesc = document.getElementById('modalCampaignDesc');
+    const modalTable = document.getElementById('modalContributionsTable');
+    document.querySelectorAll('.view-campaign-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const campaignId = this.getAttribute('data-campaign-id');
+            modal.style.display = 'flex';
+            // Clear previous data
+            modalTitle.textContent = '';
+            modalDesc.textContent = '';
+            modalTable.innerHTML = '<tr><td colspan="3" style="text-align:center;color:#64748b;">Loading...</td></tr>';
+            // Fetch campaign details and contributions
+            fetch(`/campaign/${campaignId}/contributions`)
+                .then(res => res.json())
+                .then(data => {
+                    modalTitle.textContent = data.title;
+                    modalDesc.textContent = data.description;
+                    if(data.contributions.length > 0) {
+                        modalTable.innerHTML = data.contributions.map(c =>
+                            `<tr>
+                                <td style='padding:0.4rem 0.3rem;'>${c.user_name}</td>
+                                <td style='padding:0.4rem 0.3rem;text-align:right;'>৳${parseFloat(c.amount).toLocaleString(undefined, {minimumFractionDigits:2})}</td>
+                                <td style='padding:0.4rem 0.3rem;text-align:right;'>${c.date}</td>
+                            </tr>`
+                        ).join('');
+                    } else {
+                        modalTable.innerHTML = `<tr><td colspan='3' style='text-align:center;color:#64748b;'>No contributions yet.</td></tr>`;
+                    }
+                })
+                .catch(() => {
+                    modalTable.innerHTML = `<tr><td colspan='3' style='text-align:center;color:#e11d48;'>Failed to load data.</td></tr>`;
+                });
+        });
+    });
+    closeModalBtn.addEventListener('click', function() {
+        modal.style.display = 'none';
+    });
+    window.addEventListener('click', function(e) {
+        if(e.target === modal) modal.style.display = 'none';
+    });
 
-.welcome-text h1 {
-    font-size: 3rem;
-    color: #1E40AF;
-    margin-bottom: 1rem;
-}
-
-.subtitle {
-    font-size: 1.5rem;
-    color: #6B7280;
-}
-</style>
+    // Contribute modal logic (Bootstrap)
+    let contributeModalInstance = new bootstrap.Modal(document.getElementById('contributeModal'));
+    document.querySelectorAll('.contribute-campaign-btn').forEach(function(btn) {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const campaignId = this.getAttribute('data-campaign-id');
+            const campaignTitle = this.getAttribute('data-campaign-title');
+            document.getElementById('contribute_campaign_id').value = campaignId;
+            document.getElementById('contributeCampaignTitle').textContent = campaignTitle;
+            document.getElementById('contribute_amount').value = '';
+            document.getElementById('contributeSummaryAmount').textContent = '0.00';
+            document.getElementById('contribute_payment_method').value = '';
+            // Payment methods
+            const paymentMethodsDiv = document.getElementById('contributePaymentMethods');
+            paymentMethodsDiv.innerHTML = '';
+            const bkash = this.getAttribute('data-bkash');
+            const rocket = this.getAttribute('data-rocket');
+            const nagad = this.getAttribute('data-nagad');
+            if(bkash) paymentMethodsDiv.innerHTML += `<button type="button" data-method="bkash" class="btn btn-outline-secondary contribute-method-btn d-flex flex-column align-items-center"><img src='{{ asset('images/payment/bkash.png') }}' alt='bKash' style='height:32px;' class='mb-1'><span class='small'>bKash</span></button>`;
+            if(rocket) paymentMethodsDiv.innerHTML += `<button type="button" data-method="Rocket" class="btn btn-outline-secondary contribute-method-btn d-flex flex-column align-items-center"><img src='{{ asset('images/payment/rocket.png') }}' alt='Rocket' style='height:32px;' class='mb-1'><span class='small'>Rocket</span></button>`;
+            if(nagad) paymentMethodsDiv.innerHTML += `<button type="button" data-method="Nagad" class="btn btn-outline-secondary contribute-method-btn d-flex flex-column align-items-center"><img src='{{ asset('images/payment/nagad.png') }}' alt='Nagad' style='height:32px;' class='mb-1'><span class='small'>Nagad</span></button>`;
+            document.querySelectorAll('.contribute-method-btn').forEach(btn => btn.classList.remove('active'));
+            contributeModalInstance.show();
+        });
+    });
+    // Payment method selection
+    document.addEventListener('click', function(e) {
+        if(e.target.closest('.contribute-method-btn')) {
+            document.querySelectorAll('.contribute-method-btn').forEach(b => b.classList.remove('active', 'btn-success'));
+            const btn = e.target.closest('.contribute-method-btn');
+            btn.classList.add('active', 'btn-success');
+            document.getElementById('contribute_payment_method').value = btn.getAttribute('data-method');
+        }
+    });
+    // Update summary amount on input
+    document.getElementById('contribute_amount').addEventListener('input', function() {
+        document.getElementById('contributeSummaryAmount').textContent = parseFloat(this.value || 0).toLocaleString('en-BD', {minimumFractionDigits: 2});
+    });
+    // Handle form submit
+    document.getElementById('contributeForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const campaignId = document.getElementById('contribute_campaign_id').value;
+        const paymentMethod = document.getElementById('contribute_payment_method').value;
+        const amount = document.getElementById('contribute_amount').value;
+        if (!paymentMethod) {
+            Swal.fire({ icon: 'warning', title: 'Select Payment Method', text: 'Please select a payment method before proceeding.' });
+            return;
+        }
+        if (!amount || parseFloat(amount) < 1) {
+            Swal.fire({ icon: 'warning', title: 'Invalid Amount', text: 'Please enter a valid contribution amount.' });
+            return;
+        }
+        fetch(`/campaign/${campaignId}/contribute`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                amount: amount,
+                payment_method: paymentMethod
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if(data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thank you!',
+                    html: 'Your contribution was successful.<br><a href="/contribution/' + data.contribution_id + '/receipt" class="btn btn-success mt-3" target="_blank" download>Download Receipt</a>',
+                    showConfirmButton: true,
+                    confirmButtonText: 'Close',
+                    allowOutsideClick: false
+                }).then(() => { window.location.reload(); });
+            } else {
+                Swal.fire({ icon: 'error', title: 'Contribution Failed', text: data.message || 'Unknown error occurred.' });
+            }
+        })
+        .catch(err => {
+            Swal.fire({ icon: 'error', title: 'Contribution Failed', text: err.message });
+        });
+    });
+});
+</script>
 @else
-<div class="welcome-guest-container">
+<div class="welcome-guest-container" style="width:100vw;max-width:100vw;margin:0;padding:0;">
     <!-- Carousel Hero Section -->
-    <section class="carousel-hero">
+    <section class="carousel-hero" style="width:100vw;max-width:100vw;margin:0 auto;padding:0;">
         <div class="carousel-particles"></div>
-        <div class="carousel-container" id="carouselContainer">
+        <div class="carousel-container" id="carouselContainer" style="width:100vw;max-width:100vw;margin:0;padding:0;">
             <!-- Slide 1: Welcome & Overview -->
             <div class="carousel-slide slide-1">
                 <div class="slide-content">
@@ -165,13 +377,13 @@
     /* Carousel CSS from user HTML */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; background: #ffffff; color: #1e293b; overflow-x: hidden; }
-    .carousel-hero { position: relative; height: 100vh; overflow: hidden; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .carousel-hero { position: relative; height: 100vh; overflow: hidden; background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%); }
     .carousel-container { position: relative; width: 100%; height: 100%; display: flex; transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
     .carousel-slide { min-width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; position: relative; padding: 0 2rem; }
-    .slide-1 { background: linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(147, 51, 234, 0.95) 100%); }
-    .slide-2 { background: linear-gradient(135deg, rgba(16, 185, 129, 0.95) 0%, rgba(34, 197, 94, 0.95) 100%); }
-    .slide-3 { background: linear-gradient(135deg, rgba(245, 158, 11, 0.95) 0%, rgba(251, 191, 36, 0.95) 100%); }
-    .slide-4 { background: linear-gradient(135deg, rgba(236, 72, 153, 0.95) 0%, rgba(168, 85, 247, 0.95) 100%); }
+    .slide-1 { background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%); }
+    .slide-2 { background: linear-gradient(135deg, #0f766e 0%, #38bdf8 100%); }
+    .slide-3 { background: linear-gradient(135deg, #fbbf24 0%, #fde68a 100%); }
+    .slide-4 { background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%); }
     .slide-content { max-width: 1200px; width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center; opacity: 0; transform: translateY(50px); animation: slideIn 1s ease-out 0.5s forwards; }
     .slide-text { color: white; z-index: 2; }
     .slide-title { font-size: 4rem; font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; text-shadow: 0 4px 24px rgba(0, 0, 0, 0.2); }
@@ -201,7 +413,7 @@
     .btn-primary, .btn-secondary { padding: 1rem 2rem; border-radius: 50px; font-weight: 600; text-decoration: none; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-size: 1.1rem; position: relative; overflow: hidden; }
     .btn-primary { background: rgba(255, 255, 255, 0.95); color: #1e293b; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); }
     .btn-primary:hover { transform: translateY(-3px) scale(1.05); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2); }
-    .btn-secondary { background: transparent; color: white; border: 2px solid rgba(255, 255, 255, 0.6); }
+    .btn-secondary { background: transparent; color: white; border: 2px solid rgba(255, 255, 255, 0.3); }
     .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); border-color: white; transform: translateY(-3px); }
     .carousel-progress { position: absolute; bottom: 0; left: 0; height: 4px; background: rgba(255, 255, 255, 0.3); width: 100%; z-index: 10; }
     .progress-fill { height: 100%; background: white; width: 0%; transition: width 0.1s linear; }
@@ -454,106 +666,17 @@
     </section>
 
     <!-- Stats Section -->
-    <section class="stats">
-        <div class="stats-container">
-            <div class="stat-item" data-aos="fade-up">
-                <div class="stat-number" data-count="10000">0</div>
-                <div class="stat-label">Happy Users</div>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="100">
-                <div class="stat-number" data-count="50">0</div>
-                <div class="stat-label">Million Saved</div>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="200">
-                <div class="stat-number" data-count="98">0</div>
-                <div class="stat-label">Success Rate</div>
-            </div>
-            <div class="stat-item" data-aos="fade-up" data-aos-delay="300">
-                <div class="stat-number" data-count="24">0</div>
-                <div class="stat-label">24/7 Support</div>
-            </div>
-        </div>
-    </section>
+ 
 
     <!-- Testimonials Section -->
-    <section class="testimonials">
-        <div class="section-header">
-            <h2>What Our Users Say</h2>
-            <p>Real stories from real people achieving their financial goals</p>
-        </div>
-        <div class="testimonials-slider">
-            <div class="testimonial-card active" data-aos="fade-left">
-                <div class="testimonial-content">
-                    <div class="quote-mark">"</div>
-                    <p>CholoSave made saving money fun and easy! I reached my first goal in just 3 months and couldn't be happier.</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">A</div>
-                        <div class="author-info">
-                            <span class="author-name">Ayesha Rahman</span>
-                            <span class="author-title">University Student</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card" data-aos="fade-left" data-aos-delay="100">
-                <div class="testimonial-content">
-                    <div class="quote-mark">"</div>
-                    <p>The investment tools are simple to use and the community is incredibly supportive. Best financial decision I've made!</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">R</div>
-                        <div class="author-info">
-                            <span class="author-name">Rahim Ahmed</span>
-                            <span class="author-title">Young Professional</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="testimonial-card" data-aos="fade-left" data-aos-delay="200">
-                <div class="testimonial-content">
-                    <div class="quote-mark">"</div>
-                    <p>I love the educational resources. I finally feel in control of my finances and confident about my future!</p>
-                    <div class="testimonial-author">
-                        <div class="author-avatar">F</div>
-                        <div class="author-info">
-                            <span class="author-name">Fatima Khan</span>
-                            <span class="author-title">Entrepreneur</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+  
 
     <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="cta-content">
-            <h2>Ready to Start Your Financial Journey?</h2>
-            <p>Join thousands of users who are already building their financial future with CholoSave</p>
-            <a href="{{ route('register') }}" class="cta-button">
-                <span>Start Saving Today</span>
-                <div class="button-glow"></div>
-            </a>
-        </div>
-        <div class="cta-bg-animation"></div>
-    </section>
+  
 
     <!-- Footer -->
-    <footer class="landing-footer">
-        <div class="footer-content">
-            <div class="footer-brand">
-                <h3>CholoSave</h3>
-                <p>Building financial futures, one save at a time.</p>
-            </div>
-            <div class="footer-links">
-                <a href="{{ route('vision') }}">About Us</a>
-                <a href="{{ route('contact') }}">Contact</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#terms">Terms of Service</a>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <span>&copy; {{ date('Y') }} CholoSave. All rights reserved.</span>
-        </div>
+    <footer style="background:#fff;color:#000;padding:1rem 0;text-align:center;width:100%;border-top:1px solid #e5e7eb;position:relative;bottom:0;left:0;">
+        &copy; {{ date('Y') }} CholoSave. All rights reserved.
     </footer>
 </div>
 
@@ -1012,265 +1135,11 @@
 }
 
 /* Stats Section */
-.stats {
-    padding: 4rem 2rem;
-    background: linear-gradient(135deg, #1e293b 60%, #334155 100%, #f8fafc 120%);
-    color: white;
-    border-radius: 0 0 2rem 2rem;
-}
 
-.stats-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 3rem;
-    max-width: 1000px;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.stat-item {
-    padding: 1rem;
-}
-
-.stat-number {
-    font-size: 3rem;
-    font-weight: 800;
-    color: #fbbf24;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    font-size: 1.1rem;
-    color: #cbd5e1;
-    font-weight: 500;
-}
-
-/* Testimonials Section */
-.testimonials {
-    padding: 6rem 2rem;
-    background: #f8fafc;
-}
-
-.testimonials-slider {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.testimonial-card {
-    background: white;
-    border-radius: 24px;
-    padding: 2.5rem 2rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
-    position: relative;
-    border: 1.5px solid #e0e7ef;
-}
-
-.testimonial-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1);
-}
-
-.quote-mark {
-    font-size: 4rem;
-    color: #3b82f6;
-    line-height: 1;
-    margin-bottom: 1rem;
-    font-family: serif;
-}
-
-.testimonial-content p {
-    font-size: 1.1rem;
-    line-height: 1.7;
-    color: #374151;
-    margin-bottom: 2rem;
-    font-style: italic;
-}
-
-.testimonial-author {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.author-avatar {
-    width: 50px;
-    height: 50px;
-    background: linear-gradient(45deg, #3b82f6, #8b5cf6);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.2rem;
-}
-
-.author-name {
-    font-weight: 600;
-    color: #1e293b;
-    display: block;
-}
-
-.author-title {
-    color: #64748b;
-    font-size: 0.9rem;
-}
-
-/* CTA Section */
-.cta-section {
-    position: relative;
-    padding: 6rem 2rem;
-    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-    color: white;
-    text-align: center;
-    overflow: hidden;
-}
-
-.cta-bg-animation {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-    animation: pulse 4s ease-in-out infinite alternate;
-}
-
-@keyframes pulse {
-    0% { opacity: 0.5; }
-    100% { opacity: 1; }
-}
-
-.cta-content {
-    position: relative;
-    z-index: 2;
-    max-width: 600px;
-    margin: 0 auto;
-}
-
-.cta-content h2 {
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-}
-
-.cta-content p {
-    font-size: 1.2rem;
-    margin-bottom: 3rem;
-    opacity: 0.9;
-}
-
-.cta-button {
-    position: relative;
-    display: inline-block;
-    padding: 1.2rem 3rem;
-    background: #fbbf24;
-    color: #1e293b;
-    text-decoration: none;
-    border-radius: 50px;
-    font-weight: 700;
-    font-size: 1.2rem;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
-    overflow: hidden;
-    box-shadow: 0 15px 35px rgba(251, 191, 36, 0.3);
-}
-
-.cta-button:hover {
-    transform: translateY(-3px) scale(1.07);
-    box-shadow: 0 8px 32px 0 rgba(251, 191, 36, 0.25), 0 2px 8px rgba(30, 64, 175, 0.10);
-    filter: brightness(1.08);
-}
-
-.button-glow {
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.8s;
-}
-
-.cta-button:hover .button-glow {
-    left: 100%;
-}
 
 /* Footer */
-.landing-footer {
-    background: #1e293b;
-    color: white;
-    padding: 3rem 2rem 2rem;
-}
-
-.footer-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 3rem;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.footer-brand h3 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #fbbf24;
-    margin-bottom: 0.5rem;
-}
-
-.footer-brand p {
-    color: #cbd5e1;
-    line-height: 1.6;
-}
-
-.footer-links {
-    display: flex;
-    gap: 2rem;
-    justify-content: flex-end;
-    flex-wrap: wrap;
-}
-
-.footer-links a {
-    color: #cbd5e1;
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.footer-links a:hover {
-    color: #fbbf24;
-    transform: translateY(-2px);
-}
-
-.footer-links a::after {
-    content: '';
-    position: absolute;
-    bottom: -5px;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background: #fbbf24;
-    transition: width 0.3s ease;
-}
-
-.footer-links a:hover::after {
-    width: 100%;
-}
-
-.footer-bottom {
-    text-align: center;
-    padding-top: 2rem;
-    border-top: 1px solid #374151;
-    color: #94a3b8;
+.landing-footer, .footer-content, .footer-brand, .footer-links, .footer-bottom {
+    display: none !important;
 }
 
 /* Animation Keyframes */

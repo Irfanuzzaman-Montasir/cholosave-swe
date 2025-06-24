@@ -20,4 +20,14 @@ class Campaign extends Model
         'Rocket',
         'Nagad',
     ];
+
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public static function latestActive()
+    {
+        return self::active()->orderBy('created_at', 'desc')->first();
+    }
 } 
