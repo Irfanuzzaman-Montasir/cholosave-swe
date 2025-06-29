@@ -19,5 +19,3 @@ Broadcast::channel('group.{groupId}', function ($user, $groupId) {
         ->where('group_id', $groupId)
         ->exists();
 });
-
-// Paste the full contents of chat_related_files/channels.php here 
