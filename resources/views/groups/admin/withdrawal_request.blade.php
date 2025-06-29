@@ -66,6 +66,70 @@
             </h2>
             <p class="mt-2 text-black">Please fill in the details below to submit your withdrawal request</p>
         </div>
+
+        <!-- Warning Message -->
+        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 text-lg"></i>
+                </div>
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-yellow-800">
+                        Early Withdrawal Notice
+                    </h3>
+                    <div class="mt-2 text-sm text-yellow-700">
+                        <p class="mb-2">
+                            <strong>⚠️ Important:</strong> We strongly discourage withdrawing your savings before completing the full savings period unless it's a genuine emergency.
+                        </p>
+                        <ul class="list-disc list-inside space-y-1 text-xs">
+                            <li>Early withdrawals may affect the group's financial stability</li>
+                            <li>You may miss out on potential investment returns</li>
+                            <li>Consider the impact on your long-term financial goals</li>
+                            <li>Only proceed if this is a true emergency situation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Balance Information -->
+        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-wallet text-blue-600 text-lg"></i>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-sm font-medium text-blue-800 mb-2">
+                        Your Available Balance
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">Total Savings:</span>
+                                <span class="font-medium text-blue-900">৳{{ number_format($totalSavings, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">Approved Withdrawals:</span>
+                                <span class="font-medium text-orange-600">-৳{{ number_format($totalApprovedWithdrawals, 2) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-blue-700">Approved Loans:</span>
+                                <span class="font-medium text-red-600">-৳{{ number_format($totalApprovedLoans, 2) }}</span>
+                            </div>
+                        </div>
+                        <div class="border-l border-blue-300 pl-4">
+                            <div class="text-center">
+                                <div class="text-lg font-bold text-blue-900 mb-1">
+                                    ৳{{ number_format($netAvailableBalance, 2) }}
+                                </div>
+                                <div class="text-xs text-blue-700">Available for Withdrawal</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <form method="POST" action="{{ route('admin.withdrawal.request.store', $group->group_id) }}" class="space-y-6">
             @csrf
             <div>

@@ -71,6 +71,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Join Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Role</th>
                         <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Contribution</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Current Balance</th>
                         <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Installments Left</th>
                         <th class="px-6 py-3 text-left text-xs font-medium table-header uppercase tracking-wider">Action</th>
                     </tr>
@@ -108,6 +109,9 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm table-cell">
                                 {{ number_format($member['contribution'] ?? 0) }} BDT
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm table-cell">
+                                <span class="font-medium text-blue-600">{{ number_format($member['current_balance'], 2) }} BDT</span>
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="ml-2 text-sm table-cell">{{ $member['remaining_installment'] }}</span>
                             </td>
@@ -120,7 +124,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-center table-cell">No members found</td>
+                            <td colspan="8" class="px-6 py-4 text-center table-cell">No members found</td>
                         </tr>
                     @endforelse
                 </tbody>

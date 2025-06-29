@@ -94,7 +94,10 @@
                                 Expected Profit
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actual Profit
+                                Actual Returns
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Profit/Loss
                             </th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Return Date
@@ -130,6 +133,23 @@
                                     BDT {{ number_format($investment->returns->sum('amount'), 2) }}
                                     @else
                                         -
+                                    @endif
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                    @php
+                                        $actualReturns = $investment->returns->sum('amount');
+                                        $profitLoss = $actualReturns - $investment->amount;
+                                        $isProfit = $profitLoss >= 0;
+                                    @endphp
+                                    @if($investment->returns->isNotEmpty())
+                                        <span class="px-3 py-1 rounded-full text-xs font-medium {{ $isProfit ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                            {{ $isProfit ? 'Profit' : 'Loss' }}
+                                        </span>
+                                        <div class="mt-1 text-sm {{ $isProfit ? 'text-green-600' : 'text-red-600' }}">
+                                            BDT {{ number_format(abs($profitLoss), 2) }}
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400">-</span>
                                     @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">

@@ -143,6 +143,38 @@ class GroupController extends Controller
             ->where('payment_time', '>=', now()->subMonths(6))
             ->sum('amount') / 6;
 
+        // Calculate Current Balance: (Total Savings + Completed Investment Returns) - Total Loan Due - Total Pending Investments - Total Approved Withdrawals
+        // Get completed investment returns and calculate profit/loss
+        $completedInvestments = \App\Models\Investment::where('group_id', $groupId)
+            ->where('status', 'completed')
+            ->with('returns')
+            ->get();
+
+        $completedInvestmentReturns = 0;
+        foreach ($completedInvestments as $investment) {
+            $totalReturns = $investment->returns->sum('amount');
+            $profitLoss = $totalReturns - $investment->amount; // Positive = profit, negative = loss
+            $completedInvestmentReturns += $profitLoss;
+        }
+
+        // Get total loan due (all approved loans in the group)
+        $totalLoanDue = \App\Models\LoanRequest::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        // Get total pending investments
+        $totalPendingInvestments = \App\Models\Investment::where('group_id', $groupId)
+            ->where('status', 'pending')
+            ->sum('amount');
+
+        // Get total approved withdrawals from the group
+        $totalApprovedWithdrawals = \App\Models\Withdrawal::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        // Calculate current balance
+        $currentBalance = ($totalSavings + $completedInvestmentReturns) - $totalLoanDue - $totalPendingInvestments - $totalApprovedWithdrawals;
+
         // Get active polls with vote statistics
         $activePolls = \App\Models\Poll::where('group_id', $groupId)
             ->where('status', 'active')
@@ -179,6 +211,11 @@ class GroupController extends Controller
             'timeRemaining',
             'timeRemainingText',
             'averageMonthlyCollection',
+            'currentBalance',
+            'completedInvestmentReturns',
+            'totalLoanDue',
+            'totalPendingInvestments',
+            'totalApprovedWithdrawals',
             'activePolls'
         ));
     }
@@ -225,6 +262,38 @@ class GroupController extends Controller
 
         // Calculate group goal progress
         $groupGoalProgress = $group->goal_amount > 0 ? ($totalGroupSavings / $group->goal_amount) * 100 : 0;
+
+        // Calculate Current Balance: (Total Savings + Completed Investment Returns) - Total Loan Due - Total Pending Investments
+        // Get completed investment returns and calculate profit/loss
+        $completedInvestments = \App\Models\Investment::where('group_id', $groupId)
+            ->where('status', 'completed')
+            ->with('returns')
+            ->get();
+
+        $completedInvestmentReturns = 0;
+        foreach ($completedInvestments as $investment) {
+            $totalReturns = $investment->returns->sum('amount');
+            $profitLoss = $totalReturns - $investment->amount; // Positive = profit, negative = loss
+            $completedInvestmentReturns += $profitLoss;
+        }
+
+        // Get total loan due (all approved loans in the group)
+        $totalLoanDue = \App\Models\LoanRequest::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        // Get total pending investments
+        $totalPendingInvestments = \App\Models\Investment::where('group_id', $groupId)
+            ->where('status', 'pending')
+            ->sum('amount');
+
+        // Get total approved withdrawals from the group
+        $totalApprovedWithdrawals = \App\Models\Withdrawal::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        // Calculate current balance
+        $currentBalance = ($totalGroupSavings + $completedInvestmentReturns) - $totalLoanDue - $totalPendingInvestments - $totalApprovedWithdrawals;
 
         // Get payment history for last 6 months
         $paymentHistory = [];
@@ -284,6 +353,11 @@ class GroupController extends Controller
             'timeRemainingText',
             'loanDue',
             'groupGoalProgress',
+            'currentBalance',
+            'completedInvestmentReturns',
+            'totalLoanDue',
+            'totalPendingInvestments',
+            'totalApprovedWithdrawals',
             'paymentHistory',
             'maxPayment',
             'nextPaymentDue',
@@ -447,15 +521,38 @@ class GroupController extends Controller
             ->where('status', 'approved')
             ->get();
 
-        $members = $memberships->map(function($membership) use ($groupId) {
+        $currentUserId = auth()->id();
+
+        $members = $memberships->map(function($membership) use ($groupId, $currentUserId) {
             $contribution = Savings::where('group_id', $groupId)
                 ->where('user_id', $membership->user_id)
                 ->sum('amount');
+
+            // Calculate current balance for this member
+            $totalSavings = Savings::where('group_id', $groupId)
+                ->where('user_id', $membership->user_id)
+                ->sum('amount');
+
+            $totalApprovedWithdrawals = \App\Models\Withdrawal::where('group_id', $groupId)
+                ->where('user_id', $membership->user_id)
+                ->where('status', 'approved')
+                ->sum('amount');
+
+            $totalApprovedLoans = \App\Models\LoanRequest::where('group_id', $groupId)
+                ->where('user_id', $membership->user_id)
+                ->where('status', 'approved')
+                ->sum('amount');
+
+            $currentBalance = $totalSavings - $totalApprovedWithdrawals - $totalApprovedLoans;
+
             return [
+                'user_id' => $membership->user_id,
                 'name' => $membership->user->name,
                 'join_date' => $membership->created_at,
                 'contribution' => $contribution,
                 'remaining_installment' => $membership->time_period_remaining,
+                'current_balance' => $currentBalance,
+                'is_current_user' => $membership->user_id == $currentUserId,
             ];
         });
 
@@ -555,13 +652,31 @@ class GroupController extends Controller
                     ->where('user_id', $membership->user_id)
                     ->sum('amount');
 
+                // Calculate current balance for this member
+                $totalSavings = Savings::where('group_id', $groupId)
+                    ->where('user_id', $membership->user_id)
+                    ->sum('amount');
+
+                $totalApprovedWithdrawals = \App\Models\Withdrawal::where('group_id', $groupId)
+                    ->where('user_id', $membership->user_id)
+                    ->where('status', 'approved')
+                    ->sum('amount');
+
+                $totalApprovedLoans = \App\Models\LoanRequest::where('group_id', $groupId)
+                    ->where('user_id', $membership->user_id)
+                    ->where('status', 'approved')
+                    ->sum('amount');
+
+                $currentBalance = $totalSavings - $totalApprovedWithdrawals - $totalApprovedLoans;
+
                 return [
                     'user_id' => $membership->user_id,
                     'name' => $membership->user->name,
                     'join_date' => $membership->created_at,
                     'is_admin' => $membership->is_admin,
                     'contribution' => $contribution,
-                    'remaining_installment' => $membership->time_period_remaining
+                    'remaining_installment' => $membership->time_period_remaining,
+                    'current_balance' => $currentBalance,
                 ];
             });
 

@@ -197,14 +197,31 @@
             display: none;
             z-index: 1001;
             margin-top: 0.5rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
         }
 
         .dropdown-wrapper {
             position: relative;
         }
 
-        .dropdown-wrapper:hover .dropdown-content {
+        /* Remove automatic hover behavior - now handled by JavaScript */
+        /* .dropdown-wrapper:hover .dropdown-content {
             display: block;
+            opacity: 1;
+            visibility: visible;
+        } */
+
+        /* Add a small invisible area to bridge the gap */
+        .dropdown-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            height: 10px;
+            background: transparent;
         }
 
         .notification-icon {
@@ -434,6 +451,35 @@
                 console.log('Notifications clicked');
             });
         }
+
+        // Desktop dropdown hover behavior
+        const dropdownWrappers = document.querySelectorAll('.dropdown-wrapper');
+        let hoverTimeout;
+
+        dropdownWrappers.forEach(wrapper => {
+            const dropdownContent = wrapper.querySelector('.dropdown-content');
+            
+            wrapper.addEventListener('mouseenter', function() {
+                clearTimeout(hoverTimeout);
+                dropdownContent.style.display = 'block';
+                setTimeout(() => {
+                    dropdownContent.style.opacity = '1';
+                    dropdownContent.style.visibility = 'visible';
+                }, 10);
+            });
+
+            wrapper.addEventListener('mouseleave', function() {
+                hoverTimeout = setTimeout(() => {
+                    dropdownContent.style.opacity = '0';
+                    dropdownContent.style.visibility = 'hidden';
+                    setTimeout(() => {
+                        if (dropdownContent.style.opacity === '0') {
+                            dropdownContent.style.display = 'none';
+                        }
+                    }, 200);
+                }, 150); // Small delay before hiding
+            });
+        });
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

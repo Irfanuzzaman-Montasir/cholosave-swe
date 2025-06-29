@@ -192,6 +192,81 @@
             <p class="mt-2 text-black dark:text-gray-400">Please fill in the details below to submit your loan request</p>
         </div>
 
+        <!-- Loan Criteria & Rules -->
+        <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-clipboard-list text-blue-600 text-lg"></i>
+                </div>
+                <div class="ml-3 flex-1">
+                    <h3 class="text-sm font-medium text-blue-800 mb-3">
+                        Loan Eligibility Criteria
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                        <div class="space-y-2">
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">Must be an approved group member</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">No pending leave requests</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">No existing pending/approved loans</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">Loan amount within emergency fund limit</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-check-circle text-green-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">Group has sufficient current balance</span>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">Admin approval required via poll</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">One loan at a time policy</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">Return date must be in the future</span>
+                            </div>
+                            <div class="flex items-start">
+                                <i class="fas fa-info-circle text-blue-600 mt-0.5 mr-2"></i>
+                                <span class="text-blue-700">Terms and conditions must be accepted</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Group Current Balance Information -->
+        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-lg">
+                        <i class="fas fa-piggy-bank text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-green-800">Group Current Balance</h3>
+                        <p class="text-lg font-bold text-green-900">৳{{ number_format($groupCurrentBalance, 2) }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-green-700">Emergency Fund Limit</p>
+                    <p class="text-lg font-bold text-green-900">৳{{ number_format($group->emergency_fund, 2) }}</p>
+                </div>
+            </div>
+        </div>
+
         <!-- Loan Request Form -->
         <form method="POST" action="{{ route('admin.loan.request.store', $group->group_id) }}" class="space-y-6" id="loanRequestForm">
             @csrf

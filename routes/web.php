@@ -249,6 +249,7 @@ Route::middleware(['auth'])->prefix('admin')->group(function () {
     Route::delete('/delete-expert/{id}', [App\Http\Controllers\ExpertController::class, 'destroy'])->name('admin.expert.delete');
     Route::post('/edit-expert/{id}', [App\Http\Controllers\ExpertController::class, 'update'])->name('admin.expert.update');
     Route::get('/report', [App\Http\Controllers\SiteAdminController::class, 'report'])->name('admin.report');
+    Route::post('/contact/{id}/mark-done', [App\Http\Controllers\ContactController::class, 'markAsDone'])->name('admin.contact.mark-done');
 });
 
 // Fetch campaign contributions for modal

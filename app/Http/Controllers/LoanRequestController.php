@@ -35,12 +35,36 @@ class LoanRequestController extends Controller
                 ->with('error', 'Cannot request loan while having a pending leave request.');
         }
 
+        // Calculate group current balance
+        $totalGroupSavings = \App\Models\Savings::where('group_id', $groupId)->sum('amount');
+        $totalApprovedWithdrawals = \App\Models\Withdrawal::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+        $totalApprovedLoans = \App\Models\LoanRequest::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+        $totalPendingInvestments = \App\Models\Investment::where('group_id', $groupId)
+            ->where('status', 'pending')
+            ->sum('amount');
+        $completedInvestmentReturns = 0;
+        $completedInvestments = \App\Models\Investment::where('group_id', $groupId)
+            ->where('status', 'completed')
+            ->with('returns')
+            ->get();
+        foreach ($completedInvestments as $investment) {
+            $totalReturns = $investment->returns->sum('amount');
+            $profitLoss = $totalReturns - $investment->amount;
+            $completedInvestmentReturns += $profitLoss;
+        }
+
+        $groupCurrentBalance = ($totalGroupSavings + $completedInvestmentReturns) - $totalApprovedWithdrawals - $totalApprovedLoans - $totalPendingInvestments;
+
         // Determine which view to use based on the route
         $view = request()->route()->getName() === 'admin.loan.request.create' 
             ? 'groups.admin.loan_request' 
             : 'groups.member.loan_request';
 
-        return view($view, compact('group'));
+        return view($view, compact('group', 'groupCurrentBalance', 'totalGroupSavings', 'totalApprovedWithdrawals', 'totalApprovedLoans', 'totalPendingInvestments', 'completedInvestmentReturns'));
     }
 
     public function store(Request $request, $groupId)
@@ -71,6 +95,36 @@ class LoanRequestController extends Controller
         if ($hasLeaveRequest) {
             return redirect()->back()
                 ->with('error', 'Cannot request loan while having a pending leave request.');
+        }
+
+        // Check if group has sufficient current balance to fulfill the loan
+        $totalGroupSavings = \App\Models\Savings::where('group_id', $groupId)->sum('amount');
+        $totalApprovedWithdrawals = \App\Models\Withdrawal::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+        $totalApprovedLoans = \App\Models\LoanRequest::where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+        $totalPendingInvestments = \App\Models\Investment::where('group_id', $groupId)
+            ->where('status', 'pending')
+            ->sum('amount');
+        $completedInvestmentReturns = 0;
+        $completedInvestments = \App\Models\Investment::where('group_id', $groupId)
+            ->where('status', 'completed')
+            ->with('returns')
+            ->get();
+        foreach ($completedInvestments as $investment) {
+            $totalReturns = $investment->returns->sum('amount');
+            $profitLoss = $totalReturns - $investment->amount;
+            $completedInvestmentReturns += $profitLoss;
+        }
+
+        $groupCurrentBalance = ($totalGroupSavings + $completedInvestmentReturns) - $totalApprovedWithdrawals - $totalApprovedLoans - $totalPendingInvestments;
+
+        if ($groupCurrentBalance < $request->amount) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['amount' => 'Insufficient group funds. Group current balance is ৳' . number_format($groupCurrentBalance, 2) . ' which is less than the requested loan amount.']);
         }
 
         // Validate request

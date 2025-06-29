@@ -18,7 +18,7 @@ class ContactUs extends Model
         'name',
         'email',
         'description',
-        'status', // enum: PENDING, COMPLETED
+        'status',
     ];
 
     /**
@@ -35,7 +35,40 @@ class ContactUs extends Model
      */
     public $timestamps = false;
 
-    // Optionally, you can define status constants for easier use
-    public const STATUS_PENDING = 'PENDING';
-    public const STATUS_COMPLETED = 'COMPLETED';
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array
+     */
+    protected $attributes = [
+        'status' => 'pending',
+    ];
+
+    // Status constants for easier use
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_DONE = 'done';
+
+    /**
+     * Scope a query to only include pending contacts.
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * Scope a query to only include completed contacts.
+     */
+    public function scopeDone($query)
+    {
+        return $query->where('status', self::STATUS_DONE);
+    }
+
+    /**
+     * Get the human-readable status label.
+     */
+    public function getStatusLabelAttribute()
+    {
+        return ucfirst($this->status);
+    }
 }

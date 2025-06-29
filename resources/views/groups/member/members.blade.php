@@ -30,13 +30,15 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto p-6 animate-fade-in">
+    <!-- Page Header -->
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">
+            <i class="fa-solid fa-users mr-3 text-blue-600"></i>
+            Member Details
+        </h1>
+    </div>
+
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-semibold text-gray-800">
-                <i class="fa-solid fa-users mr-2 text-blue-600"></i>
-                Member Details
-            </h2>
-        </div>
         <div class="table-container overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-50">
@@ -46,6 +48,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Join Date</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contribution</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Current Balance</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Installments Left</th>
                     </tr>
                 </thead>
@@ -82,13 +85,20 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {{ number_format($member['contribution'] ?? 0) }} BDT
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                @if($member['is_current_user'])
+                                    <span class="font-medium text-blue-600">{{ number_format($member['current_balance'], 2) }} BDT</span>
+                                @else
+                                    <span class="text-gray-400">****</span>
+                                @endif
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="ml-2 text-sm text-gray-500">{{ $member['remaining_installment'] }}</span>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-4 text-center text-gray-500">No members found</td>
+                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">No members found</td>
                         </tr>
                     @endforelse
                 </tbody>

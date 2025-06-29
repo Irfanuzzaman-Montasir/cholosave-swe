@@ -16,7 +16,26 @@ class WithdrawalController extends Controller
     public function adminCreate($groupId)
     {
         $group = MyGroup::findOrFail($groupId);
-        return view('groups.admin.withdrawal_request', compact('group'));
+        $userId = Auth::id();
+
+        // Calculate available net balance for the admin
+        $totalSavings = Savings::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->sum('amount');
+
+        $totalApprovedWithdrawals = Withdrawal::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $totalApprovedLoans = \App\Models\LoanRequest::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $netAvailableBalance = $totalSavings - $totalApprovedWithdrawals - $totalApprovedLoans;
+
+        return view('groups.admin.withdrawal_request', compact('group', 'netAvailableBalance', 'totalSavings', 'totalApprovedWithdrawals', 'totalApprovedLoans'));
     }
 
     public function adminStore(Request $request, $groupId)
@@ -30,15 +49,27 @@ class WithdrawalController extends Controller
             'payment_method' => 'required|in:Bkash,Nagad,Rocket',
         ]);
 
-        // Check if user has sufficient savings
+        // Check if user has sufficient savings (considering approved withdrawals and loans)
         $totalSavings = Savings::where('user_id', $userId)
             ->where('group_id', $groupId)
             ->sum('amount');
 
-        if ($totalSavings < $request->amount) {
+        $totalApprovedWithdrawals = Withdrawal::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $totalApprovedLoans = \App\Models\LoanRequest::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $netAvailableBalance = $totalSavings - $totalApprovedWithdrawals - $totalApprovedLoans;
+
+        if ($netAvailableBalance < $request->amount) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['amount' => 'Insufficient savings for the requested withdrawal.']);
+                ->withErrors(['amount' => 'Insufficient available balance. Your net available balance is ৳' . number_format($netAvailableBalance, 2) . ' (Total Savings: ৳' . number_format($totalSavings, 2) . ' - Approved Withdrawals: ৳' . number_format($totalApprovedWithdrawals, 2) . ' - Approved Loans: ৳' . number_format($totalApprovedLoans, 2) . ')']);
         }
 
         // Create withdrawal request
@@ -180,7 +211,26 @@ class WithdrawalController extends Controller
     public function create($groupId)
     {
         $group = MyGroup::findOrFail($groupId);
-        return view('groups.member.withdrawal_request', compact('group'));
+        $userId = Auth::id();
+
+        // Calculate available net balance for the member
+        $totalSavings = Savings::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->sum('amount');
+
+        $totalApprovedWithdrawals = Withdrawal::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $totalApprovedLoans = \App\Models\LoanRequest::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $netAvailableBalance = $totalSavings - $totalApprovedWithdrawals - $totalApprovedLoans;
+
+        return view('groups.member.withdrawal_request', compact('group', 'netAvailableBalance', 'totalSavings', 'totalApprovedWithdrawals', 'totalApprovedLoans'));
     }
 
     public function store(Request $request, $groupId)
@@ -194,15 +244,27 @@ class WithdrawalController extends Controller
             'payment_method' => 'required|in:Bkash,Nagad,Rocket',
         ]);
 
-        // Check if user has sufficient savings
+        // Check if user has sufficient savings (considering approved withdrawals and loans)
         $totalSavings = Savings::where('user_id', $userId)
             ->where('group_id', $groupId)
             ->sum('amount');
 
-        if ($totalSavings < $request->amount) {
+        $totalApprovedWithdrawals = Withdrawal::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $totalApprovedLoans = \App\Models\LoanRequest::where('user_id', $userId)
+            ->where('group_id', $groupId)
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $netAvailableBalance = $totalSavings - $totalApprovedWithdrawals - $totalApprovedLoans;
+
+        if ($netAvailableBalance < $request->amount) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['amount' => 'Insufficient savings for the requested withdrawal.']);
+                ->withErrors(['amount' => 'Insufficient available balance. Your net available balance is ৳' . number_format($netAvailableBalance, 2) . ' (Total Savings: ৳' . number_format($totalSavings, 2) . ' - Approved Withdrawals: ৳' . number_format($totalApprovedWithdrawals, 2) . ' - Approved Loans: ৳' . number_format($totalApprovedLoans, 2) . ')']);
         }
 
         // Create withdrawal request

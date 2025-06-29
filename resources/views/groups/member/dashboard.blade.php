@@ -67,7 +67,7 @@
         <div class="max-w-7xl mx-auto animate-fade-in">
             
             <!-- Top Section - Personal Progress Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                 <!-- Your Savings Progress -->
                 <div class="metric-card bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <div class="flex items-center justify-between">
@@ -149,6 +149,37 @@
                         </div>
                         <div class="p-3 bg-purple-100 rounded-lg">
                             <i class="fas fa-bullseye text-purple-600 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Balance -->
+                <div class="metric-card bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">Current Balance</p>
+                            <p class="text-2xl font-bold text-gray-900">৳{{ number_format($currentBalance, 2) }}</p>
+                            <div class="mt-2 space-y-1">
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-500">Investment P/L:</span>
+                                    <span class="font-medium {{ $completedInvestmentReturns >= 0 ? 'text-green-600' : 'text-red-600' }}">৳{{ number_format($completedInvestmentReturns, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-500">Pending Investments:</span>
+                                    <span class="font-medium text-yellow-600">৳{{ number_format($totalPendingInvestments, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-500">Total Loans Due:</span>
+                                    <span class="font-medium text-red-600">৳{{ number_format($totalLoanDue, 2) }}</span>
+                                </div>
+                                <div class="flex justify-between text-xs">
+                                    <span class="text-gray-500">Total Withdrawals:</span>
+                                    <span class="font-medium text-orange-600">৳{{ number_format($totalApprovedWithdrawals, 2) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-3 bg-indigo-100 rounded-lg">
+                            <i class="fas fa-wallet text-indigo-600 text-2xl"></i>
                         </div>
                     </div>
                 </div>

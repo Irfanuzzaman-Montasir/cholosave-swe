@@ -63,7 +63,10 @@ class SiteAdminController extends Controller
 
     public function report()
     {
-        $contacts = \App\Models\ContactUs::orderBy('created_at', 'desc')->get();
+        // Order by pending status first, then by date (newest first)
+        $contacts = ContactUs::orderByRaw("CASE WHEN status = 'pending' THEN 0 ELSE 1 END")
+                            ->orderBy('created_at', 'desc')
+                            ->get();
         return view('admin.report', compact('contacts'));
     }
 } 
