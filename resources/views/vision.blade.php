@@ -11,7 +11,7 @@
     <section class="carousel-hero" style="width:100vw;max-width:100vw;margin:0 auto;padding:0;">
         <div class="carousel-particles"></div>
         <div class="carousel-container" style="width:100vw;max-width:100vw;margin:0;padding:0;">
-            <div class="carousel-slide slide-1" style="min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;padding:0 2rem;background:linear-gradient(135deg,#1e293b 0%,#3b82f6 100%);">
+            <div class="carousel-slide slide-1" style="min-width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative;padding:0 2rem;background:linear-gradient(135deg,#0f766e 0%,#38bdf8 100%);">
                 <div class="slide-content" style="max-width:1200px;width:100%;display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;">
                     <div class="slide-text">
                         <h1 class="slide-title">Our Vision</h1>

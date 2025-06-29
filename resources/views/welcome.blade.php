@@ -4,110 +4,138 @@
 
 @section('content')
 @auth
-<div class="welcome-container">
-    <div class="welcome-content">
-        <div class="welcome-text" style="text-align:center;margin-bottom:3rem;margin-top:7rem;">
-            <h1 style="font-size:3rem;color:#1E40AF;margin-bottom:1rem;"><span id="typewriter-welcome"></span></h1>
-            <p class="subtitle" style="font-size:1.5rem;color:#6B7280;">Your financial journey continues here</p>
-        </div>
-        @php
-            $campaigns = \App\Models\Campaign::active()->orderBy('created_at', 'desc')->get();
-        @endphp
-        @if($campaigns->count())
-        <div class="campaigns-list" style="max-width:1200px;margin:10rem auto 0;">
-            <h2 style="font-size:1.3rem;font-weight:700;color:#e11d48;margin-bottom:1.2rem;text-align:center;">Active Campaigns</h2>
-            @foreach($campaigns as $campaign)
-            <div class="campaign-highlight" style="box-shadow:0 2px 16px #e0e7ef;border-radius:16px;padding:1.5rem;background:#fff;margin-bottom:1rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:nowrap;">
-                <div style="min-width:200px;">
-                    <h3 style="font-size:1.1rem;font-weight:700;color:#1E40AF;margin-bottom:0.25rem;">{{ $campaign->title }}</h3>
-                    <p style="color:#64748b;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">{{ $campaign->description }}</p>
-                </div>
-                <div style="flex:1;min-width:200px;">
-                    <div style="background:#e5e7eb;border-radius:8px;overflow:hidden;height:12px;width:100%;">
-                        @php
-                            $progress = $campaign->goal_amount > 0 ? min(100, round(($campaign->current_amount / $campaign->goal_amount) * 100)) : 0;
-                        @endphp
-                        <div style="width:{{ $progress }}%;background:#10b981;height:100%;transition:width 0.6s;"></div>
+<div style="
+    position:relative;
+    background: linear-gradient(rgba(30,41,59,0.85), rgba(56,189,248,0.85)), url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&h=800&fit=crop&crop=center') center/cover no-repeat;
+    min-height: 100vh;
+    padding-top: 5rem;
+    overflow:hidden;
+">
+    <div style="position:absolute;top:10%;left:5%;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);border-radius:12px;padding:0.8rem 1.5rem;color:white;font-weight:600;z-index:1;">🎯 Goals</div>
+    <div style="position:absolute;top:30%;right:10%;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);border-radius:12px;padding:0.8rem 1.5rem;color:white;font-weight:600;z-index:1;">💡 Smart Tips</div>
+    <div style="position:absolute;bottom:20%;left:20%;background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);border-radius:12px;padding:0.8rem 1.5rem;color:white;font-weight:600;z-index:1;">📈 Growth</div>
+    <div class="welcome-container" style="position:relative;z-index:2;">
+        <div class="welcome-content">
+            <div class="welcome-text" style="text-align:center;margin-bottom:3rem;margin-top:7rem;">
+                <h1 style="font-size:3rem;color:#fff;margin-bottom:1rem;text-shadow:0 4px 24px rgba(0,0,0,0.5);">
+                    <span id="typewriter-welcome"></span>
+                </h1>
+                <p class="subtitle" style="font-size:1.5rem;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,0.4);">
+                    Your financial journey continues here
+                </p>
+            </div>
+            @php
+                $campaigns = \App\Models\Campaign::active()->orderBy('created_at', 'desc')->get();
+                $blueGradient = 'linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%)';
+            @endphp
+            @if($campaigns->count())
+            <div class="campaigns-list" style="max-width:1200px;margin:10rem auto 0;">
+                <h2 style="font-size:1.3rem;font-weight:700;color:#e11d48;margin-bottom:1.2rem;text-align:center;">Active Campaigns</h2>
+                @foreach($campaigns as $campaign)
+                <div class="campaign-highlight" style="
+                    background: {{ $blueGradient }};
+                    box-shadow: 0 4px 24px rgba(56,189,248,0.10);
+                    border-radius: 18px;
+                    padding: 1.5rem;
+                    margin-bottom: 1rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 1.5rem;
+                    flex-wrap: nowrap;
+                    color: #fff;
+                    border: 1px solid rgba(56,189,248,0.18);
+                ">
+                    <div style="min-width:200px;">
+                        <h3 style="font-size:1.1rem;font-weight:700;color:#fff;margin-bottom:0.25rem;text-shadow:0 2px 8px rgba(0,0,0,0.18);">{{ $campaign->title }}</h3>
+                        <p style="color:#e0e7ef;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;">{{ $campaign->description }}</p>
                     </div>
-                    <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#374151;margin-top:0.2rem;">
-                        <span>৳{{ number_format($campaign->current_amount,2) }}</span>
-                        <span>{{ $progress }}%</span>
-                        <span>Goal: ৳{{ number_format($campaign->goal_amount,2) }}</span>
+                    <div style="flex:1;min-width:200px;">
+                        <div style="background:rgba(255,255,255,0.18);border-radius:8px;overflow:hidden;height:12px;width:100%;">
+                            @php
+                                $progress = $campaign->goal_amount > 0 ? min(100, round(($campaign->current_amount / $campaign->goal_amount) * 100)) : 0;
+                            @endphp
+                            <div style="width:{{ $progress }}%;background:#fff;height:100%;transition:width 0.6s;"></div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;font-size:0.85rem;color:#f3f4f6;margin-top:0.2rem;">
+                            <span>৳{{ number_format($campaign->current_amount,2) }}</span>
+                            <span>{{ $progress }}%</span>
+                            <span>Goal: ৳{{ number_format($campaign->goal_amount,2) }}</span>
+                        </div>
+                    </div>
+                    <div style="font-size:0.9rem;color:#e0e7ef;white-space:nowrap;">
+                        Deadline: {{ \Carbon\Carbon::parse($campaign->deadline)->format('M d, Y') }}
+                    </div>
+                    <div style="display:flex;gap:0.75rem;white-space:nowrap;">
+                        <button class="btn btn-primary view-campaign-btn" data-campaign-id="{{ $campaign->id }}" style="background:rgba(255,255,255,0.92);color:#0ea5e9;padding:0.5rem 1rem;border-radius:8px;font-weight:600;cursor:pointer;border:none;font-size:0.9rem;">View</button>
+                        <button class="btn btn-success contribute-campaign-btn" data-campaign-id="{{ $campaign->id }}" data-campaign-title="{{ $campaign->title }}" data-bkash="{{ $campaign->bKash }}" data-rocket="{{ $campaign->Rocket }}" data-nagad="{{ $campaign->Nagad }}" style="background:rgba(255,255,255,0.92);color:#059669;padding:0.5rem 1rem;border-radius:8px;font-weight:600;cursor:pointer;border:none;font-size:0.9rem;">Contribute</button>
                     </div>
                 </div>
-                <div style="font-size:0.9rem;color:#6B7280;white-space:nowrap;">
-                    Deadline: {{ \Carbon\Carbon::parse($campaign->deadline)->format('M d, Y') }}
-                </div>
-                <div style="display:flex;gap:0.75rem;white-space:nowrap;">
-                    <button class="btn btn-primary view-campaign-btn" data-campaign-id="{{ $campaign->id }}" style="background:#3b82f6;color:#fff;padding:0.5rem 1rem;border-radius:8px;font-weight:600;cursor:pointer;border:none;font-size:0.9rem;">View</button>
-                    <button class="btn btn-success contribute-campaign-btn" data-campaign-id="{{ $campaign->id }}" data-campaign-title="{{ $campaign->title }}" data-bkash="{{ $campaign->bKash }}" data-rocket="{{ $campaign->Rocket }}" data-nagad="{{ $campaign->Nagad }}" style="background:#10b981;color:#fff;padding:0.5rem 1rem;border-radius:8px;font-weight:600;cursor:pointer;border:none;font-size:0.9rem;">Contribute</button>
-                </div>
+                @endforeach
             </div>
-            @endforeach
-        </div>
-        @endif
-    </div>
-</div>
-
-<!-- Campaign Details Modal -->
-<div id="campaignModal" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(30,41,59,0.45);align-items:center;justify-content:center;">
-    <div style="background:#fff;border-radius:16px;max-width:500px;width:95vw;padding:2rem;position:relative;box-shadow:0 8px 32px rgba(30,41,59,0.18);">
-        <button id="closeCampaignModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;color:#64748b;cursor:pointer;">&times;</button>
-        <h2 id="modalCampaignTitle" style="font-size:1.3rem;font-weight:700;color:#1E40AF;margin-bottom:0.5rem;"></h2>
-        <p id="modalCampaignDesc" style="color:#64748b;margin-bottom:1.2rem;"></p>
-        <h4 style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;">Contributions</h4>
-        <div id="modalContributionsTableWrapper">
-            <table style="width:100%;border-collapse:collapse;">
-                <thead>
-                    <tr style="background:#f1f5f9;">
-                        <th style="padding:0.5rem 0.3rem;text-align:left;font-size:0.95rem;">Name</th>
-                        <th style="padding:0.5rem 0.3rem;text-align:right;font-size:0.95rem;">Amount</th>
-                        <th style="padding:0.5rem 0.3rem;text-align:right;font-size:0.95rem;">Date</th>
-                    </tr>
-                </thead>
-                <tbody id="modalContributionsTable">
-                    <tr><td colspan="3" style="text-align:center;color:#64748b;">Loading...</td></tr>
-                </tbody>
-            </table>
+            @endif
         </div>
     </div>
-</div>
 
-<!-- Campaign Contribution Modal (Bootstrap) -->
-<div class="modal fade" id="contributeModal" tabindex="-1" aria-labelledby="contributeModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="contributeModalLabel">Contribute to <span id="contributeCampaignTitle"></span></h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="contributeForm">
-          <input type="hidden" id="contribute_campaign_id" name="campaign_id">
-          <input type="hidden" id="contribute_payment_method" name="payment_method">
-          <div class="mb-3">
-            <label class="form-label">Contribution Amount</label>
-            <input type="number" id="contribute_amount" name="amount" class="form-control" min="1" step="0.01" required>
-            <div class="form-text">Enter the amount you want to contribute.</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Select Payment Method</label>
-            <div class="d-flex gap-3" id="contributePaymentMethods">
-              <!-- Payment method buttons will be injected here -->
+    <!-- Campaign Details Modal -->
+    <div id="campaignModal" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(30,41,59,0.45);align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:16px;max-width:500px;width:95vw;padding:2rem;position:relative;box-shadow:0 8px 32px rgba(30,41,59,0.18);">
+            <button id="closeCampaignModal" style="position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:1.5rem;color:#64748b;cursor:pointer;">&times;</button>
+            <h2 id="modalCampaignTitle" style="font-size:1.3rem;font-weight:700;color:#1E40AF;margin-bottom:0.5rem;"></h2>
+            <p id="modalCampaignDesc" style="color:#64748b;margin-bottom:1.2rem;"></p>
+            <h4 style="font-size:1.1rem;font-weight:600;margin-bottom:0.5rem;">Contributions</h4>
+            <div id="modalContributionsTableWrapper">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th style="padding:0.5rem 0.3rem;text-align:left;font-size:0.95rem;">Name</th>
+                            <th style="padding:0.5rem 0.3rem;text-align:right;font-size:0.95rem;">Amount</th>
+                            <th style="padding:0.5rem 0.3rem;text-align:right;font-size:0.95rem;">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modalContributionsTable">
+                        <tr><td colspan="3" style="text-align:center;color:#64748b;">Loading...</td></tr>
+                    </tbody>
+                </table>
             </div>
+        </div>
+    </div>
+
+    <!-- Campaign Contribution Modal (Bootstrap) -->
+    <div class="modal fade" id="contributeModal" tabindex="-1" aria-labelledby="contributeModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title" id="contributeModalLabel">Contribute to <span id="contributeCampaignTitle"></span></h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
-          <div class="mb-3">
-            <div class="alert alert-info" role="alert">
-              <strong>Contribution Amount:</strong> ৳<span id="contributeSummaryAmount">0.00</span>
-            </div>
+          <div class="modal-body">
+            <form id="contributeForm">
+              <input type="hidden" id="contribute_campaign_id" name="campaign_id">
+              <input type="hidden" id="contribute_payment_method" name="payment_method">
+              <div class="mb-3">
+                <label class="form-label">Contribution Amount</label>
+                <input type="number" id="contribute_amount" name="amount" class="form-control" min="1" step="0.01" required>
+                <div class="form-text">Enter the amount you want to contribute.</div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Select Payment Method</label>
+                <div class="d-flex gap-3" id="contributePaymentMethods">
+                  <!-- Payment method buttons will be injected here -->
+                </div>
+              </div>
+              <div class="mb-3">
+                <div class="alert alert-info" role="alert">
+                  <strong>Contribution Amount:</strong> ৳<span id="contributeSummaryAmount">0.00</span>
+                </div>
+              </div>
+              <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-success">Contribute Now</button>
+              </div>
+            </form>
           </div>
-          <div class="d-flex justify-content-end">
-            <button type="submit" class="btn btn-success">Contribute Now</button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
-  </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -1,69 +1,142 @@
 @extends($isAdmin ? 'layouts.group_admin' : 'layouts.group_member')
 
 @section('content')
-<div class="flex justify-center items-center min-h-[80vh]">
-    <div class="w-full max-w-4xl bg-white rounded-xl shadow-sm border border-slate-200 h-[70vh] flex flex-col">
-        <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-slate-200 rounded-t-xl">
-            <div class="px-4 py-4 flex justify-between items-center">
+<div class="flex justify-center items-center min-h-[80vh] bg-gradient-to-br from-slate-50 to-slate-100">
+    <div class="w-full max-w-5xl bg-white rounded-2xl shadow-xl border border-slate-200/50 h-[85vh] flex flex-col overflow-hidden backdrop-blur-sm">
+        <!-- Enhanced Header -->
+        <header class="bg-gradient-to-r from-slate-900 to-slate-800 text-white shadow-lg">
+            <div class="px-6 py-4 flex justify-between items-center">
                 <div class="flex items-center gap-4">
                     <a href="{{ $isAdmin ? route('groups.admin.dashboard', $groupId) : route('groups.member.dashboard', $groupId) }}" 
-                       class="text-slate-600 hover:text-slate-800 transition-colors">
-                        <i class="fas fa-arrow-left"></i>
+                       class="text-slate-300 hover:text-white transition-colors p-2 hover:bg-slate-700 rounded-lg">
+                        <i class="fas fa-arrow-left text-lg"></i>
                     </a>
-                    <div class="flex items-center gap-3">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <h1 class="text-xl font-semibold text-slate-800">
-                            Group Chat @if($isAdmin)<span class="text-sm font-normal text-blue-600 bg-blue-50 px-2 py-1 rounded-full ml-2">Admin Mode</span>@endif
-                        </h1>
+                    <div class="flex items-center gap-4">
+                        <div class="relative">
+                            <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center shadow-lg">
+                                <i class="fas fa-users text-white text-sm"></i>
+                            </div>
+                            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 border-2 border-white rounded-full animate-pulse"></div>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold text-white flex items-center gap-3">
+                                Group Chat
+                                @if($isAdmin)
+                                    <span class="text-xs font-medium text-emerald-300 bg-emerald-900/30 px-3 py-1 rounded-full border border-emerald-400/30">
+                                        <i class="fas fa-crown mr-1"></i>Admin Mode
+                                    </span>
+                                @endif
+                            </h1>
+                            <p class="text-sm text-slate-300 flex items-center gap-2">
+                                <span class="w-2 h-2 bg-green-400 rounded-full"></span>
+                                Online now
+                            </p>
+                        </div>
                     </div>
                 </div>
+
             </div>
         </header>
-        <!-- Chat Container -->
-        <div class="flex-1 p-6 overflow-y-auto messages space-y-4">
+
+        <!-- Enhanced Chat Container -->
+        <div class="flex-1 messages overflow-y-auto bg-gradient-to-b from-slate-50/30 to-white p-6 space-y-6 relative">
+            <!-- Chat background pattern -->
+            <div class="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60"><g fill="none" fill-rule="evenodd"><g fill="%23000000" fill-opacity="0.1"><circle cx="30" cy="30" r="1"/></g></g></svg>')] pointer-events-none"></div>
+            
             @foreach($messages as $message)
-                <div class="message {{ $message->user_id === auth()->id() ? 'flex justify-end' : 'flex justify-start' }}">
-                    <div class="max-w-[70%] group">
-                        <div class="flex items-center mb-1 {{ $message->user_id === auth()->id() ? 'justify-end' : 'justify-start' }}">
-                            <span class="text-sm text-slate-600 font-medium">
-                                {{ $message->user->name }}
-                                @if($message->is_admin)
-                                    <span class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">Admin</span>
-                                @endif
-                            </span>
-                            <span class="text-xs text-slate-400 ml-2">
-                                {{ $message->created_at->format('h:i A') }}
-                            </span>
-                        </div>
-                        <div class="message-bubble {{ $message->user_id === auth()->id() 
-                            ? 'bg-blue-500 text-white rounded-2xl rounded-tr-sm' 
-                            : 'bg-slate-100 text-slate-800 rounded-2xl rounded-tl-sm' }} 
-                            p-4 transition-all">
-                            {{ $message->message }}
-                        </div>
+                <div class="message {{ $message->user_id === auth()->id() ? 'flex justify-end' : 'flex justify-start' }} relative z-10">
+                    <div class="max-w-[75%] group">
+                        @if($message->user_id !== auth()->id())
+                            <!-- Other user's message -->
+                            <div class="flex items-start gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-md flex-shrink-0 mt-1">
+                                    {{ substr($message->user->name, 0, 1) }}
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-sm font-semibold text-slate-700">
+                                            {{ $message->user->name }}
+                                        </span>
+                                        @if($message->is_admin)
+                                            <span class="bg-gradient-to-r from-amber-400 to-amber-600 text-white text-xs px-2 py-0.5 rounded-full font-medium shadow-sm">
+                                                <i class="fas fa-crown mr-1"></i>Admin
+                                            </span>
+                                        @endif
+                                        <span class="text-xs text-slate-400">
+                                            {{ $message->created_at->format('h:i A') }}
+                                        </span>
+                                    </div>
+                                    <div class="message-bubble bg-white text-slate-800 rounded-2xl rounded-tl-md px-4 py-3 shadow-md border border-slate-200/50 hover:shadow-lg transition-all duration-200 relative">
+                                        <div class="absolute -left-2 top-4 w-0 h-0 border-r-8 border-r-white border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+                                        {{ $message->message }}
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <!-- Current user's message -->
+                            <div class="flex items-end gap-3 justify-end">
+                                <div class="text-right">
+                                    <div class="flex items-center gap-2 mb-2 justify-end">
+                                        <span class="text-xs text-slate-400">
+                                            {{ $message->created_at->format('h:i A') }}
+                                        </span>
+                                        @if($message->is_admin)
+                                            <span class="bg-gradient-to-r from-amber-400 to-amber-600 text-white text-xs px-2 py-0.5 rounded-full font-medium shadow-sm">
+                                                <i class="fas fa-crown mr-1"></i>Admin
+                                            </span>
+                                        @endif
+                                        <span class="text-sm font-semibold text-slate-700">
+                                            {{ $message->user->name }}
+                                        </span>
+                                    </div>
+                                    <div class="message-bubble bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-200 relative">
+                                        <div class="absolute -right-2 top-4 w-0 h-0 border-l-8 border-l-blue-500 border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+                                        {{ $message->message }}
+                                    </div>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-semibold shadow-md flex-shrink-0">
+                                    {{ substr($message->user->name, 0, 1) }}
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             @endforeach
         </div>
-        <!-- Message Input Area -->
-        <div class="border-t border-slate-200 p-4 bg-slate-50 rounded-b-xl">
-            <form class="message-form flex gap-3">
-                <div class="flex-1 relative">
-                    <textarea 
-                        name="message" 
-                        class="message-input w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white"
-                        placeholder="Type your message..."
-                    ></textarea>
+
+        <!-- Enhanced Message Input Area -->
+        <div class="border-t border-slate-200 bg-white p-6 shadow-lg">
+            <form class="message-form">
+                <div class="flex gap-4 items-end">
+                    <div class="flex-1 relative">
+                        <textarea 
+                            name="message" 
+                            class="message-input w-full px-4 py-4 border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none bg-slate-50 focus:bg-white transition-all duration-200 text-slate-800 placeholder-slate-400"
+                            placeholder="Type your message..."
+                            rows="1"
+                        ></textarea>
+                    </div>
+                    <button 
+                        type="submit" 
+                        class="px-6 py-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 flex items-center gap-3 font-semibold shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transform hover:scale-105 active:scale-95"
+                    >
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Send</span>
+                    </button>
                 </div>
-                <button 
-                    type="submit" 
-                    class="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors duration-200 flex items-center gap-2 font-medium shadow-sm hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                >
-                    <i class="fas fa-paper-plane"></i>
-                    <span>Send</span>
-                </button>
             </form>
+            
+            <!-- Typing indicator placeholder -->
+            <div class="typing-indicator mt-3 text-sm text-slate-500 hidden">
+                <div class="flex items-center gap-2">
+                    <div class="flex gap-1">
+                        <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
+                        <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+                        <div class="w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                    </div>
+                    <span>Someone is typing...</span>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -71,39 +144,138 @@
 
 @push('styles')
 <style>
+/* Enhanced scrollbar */
 .messages::-webkit-scrollbar {
-    width: 6px;
+    width: 8px;
 }
 .messages::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
+    background: transparent;
 }
 .messages::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 10px;
+    background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
+    border-radius: 20px;
+    border: 2px solid transparent;
+    background-clip: content-box;
 }
 .messages::-webkit-scrollbar-thumb:hover {
-    background: #94a3b8;
+    background: linear-gradient(to bottom, #94a3b8, #64748b);
+    background-clip: content-box;
 }
+
+/* Enhanced animations */
 .message {
-    animation: fadeIn 0.3s ease-in-out;
+    animation: slideInMessage 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
-@keyframes fadeIn {
+
+@keyframes slideInMessage {
     from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(20px) scale(0.95);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) scale(1);
     }
 }
-.message-input {
-    min-height: 48px;
-    max-height: 120px;
-}
+
+/* Message bubble enhancements */
 .message-bubble {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    position: relative;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.message-bubble:hover {
+    transform: translateY(-1px);
+}
+
+/* Input enhancements */
+.message-input {
+    min-height: 56px;
+    max-height: 120px;
+    line-height: 1.5;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.message-input:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.15);
+}
+
+/* Button enhancements */
+button[type="submit"]:hover {
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .message {
+        margin: 0 -1rem;
+    }
+    
+    .max-w-\[75\%\] {
+        max-width: 85%;
+    }
+    
+    .message-input {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Glassmorphism effect */
+.backdrop-blur-sm {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* Enhanced gradient effects */
+.bg-gradient-to-r {
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Message timestamp fade in */
+.group:hover .text-xs {
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.text-xs {
+    opacity: 0.7;
+}
+
+/* Pulse animation for online indicator */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1.1);
+    }
+}
+
+.animate-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Enhanced focus states */
+*:focus {
+    outline: none;
+}
+
+button:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
 }
 </style>
 @endpush
@@ -188,20 +360,31 @@
 
         const messageElem = document.createElement('div');
         const adminBadge = data.is_admin 
-            ? '<span class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">Admin</span>' 
+            ? '<span class="bg-gradient-to-r from-amber-400 to-amber-600 text-white text-xs px-2 py-0.5 rounded-full font-medium shadow-sm"><i class="fas fa-crown mr-1"></i>Admin</span>' 
             : '';
         
-        messageElem.className = `message flex justify-start`;
+        const userInitial = data.username ? data.username.charAt(0).toUpperCase() : '?';
+        
+        messageElem.className = `message flex justify-start relative z-10`;
         messageElem.innerHTML = `
-            <div class="max-w-[70%] group">
-                <div class="flex items-center mb-1 justify-start">
-                    <span class="text-sm text-slate-600 font-medium">
-                        ${data.username} ${adminBadge}
-                    </span>
-                    <span class="text-xs text-slate-400 ml-2">${messageTime}</span>
-                </div>
-                <div class="message-bubble bg-slate-100 text-slate-800 rounded-2xl rounded-tl-sm p-4">
-                    ${data.message.message}
+            <div class="max-w-[75%] group">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-sm font-semibold shadow-md flex-shrink-0 mt-1">
+                        ${userInitial}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-sm font-semibold text-slate-700">
+                                ${data.username}
+                            </span>
+                            ${adminBadge}
+                            <span class="text-xs text-slate-400">${messageTime}</span>
+                        </div>
+                        <div class="message-bubble bg-white text-slate-800 rounded-2xl rounded-tl-md px-4 py-3 shadow-md border border-slate-200/50 hover:shadow-lg transition-all duration-200 relative">
+                            <div class="absolute -left-2 top-4 w-0 h-0 border-r-8 border-r-white border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+                            ${data.message.message}
+                        </div>
+                    </div>
                 </div>
             </div>`;
         
@@ -250,20 +433,29 @@
                         });
                         
                         const adminBadge = isAdmin 
-                            ? '<span class="bg-blue-50 text-blue-600 text-xs px-2 py-0.5 rounded-full">Admin</span>' 
+                            ? '<span class="bg-gradient-to-r from-amber-400 to-amber-600 text-white text-xs px-2 py-0.5 rounded-full font-medium shadow-sm"><i class="fas fa-crown mr-1"></i>Admin</span>' 
                             : '';
                         
-                        messageElem.className = `message flex justify-end`;
+                        const userInitial = username ? username.charAt(0).toUpperCase() : '?';
+                        
+                        messageElem.className = `message flex justify-end relative z-10`;
                         messageElem.innerHTML = `
-                            <div class="max-w-[70%] group">
-                                <div class="flex items-center mb-1 justify-end">
-                                    <span class="text-sm text-slate-600 font-medium">
-                                        ${username} ${adminBadge}
-                                    </span>
-                                    <span class="text-xs text-slate-400 ml-2">${time}</span>
-                                </div>
-                                <div class="message-bubble bg-blue-500 text-white rounded-2xl rounded-tr-sm p-4">
-                                    ${message}
+                            <div class="max-w-[75%] group">
+                                <div class="flex items-end gap-3 justify-end">
+                                    <div class="text-right">
+                                        <div class="flex items-center gap-2 mb-2 justify-end">
+                                            <span class="text-xs text-slate-400">${time}</span>
+                                            ${adminBadge}
+                                            <span class="text-sm font-semibold text-slate-700">${username}</span>
+                                        </div>
+                                        <div class="message-bubble bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl rounded-tr-md px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-200 relative">
+                                            <div class="absolute -right-2 top-4 w-0 h-0 border-l-8 border-l-blue-500 border-t-4 border-t-transparent border-b-4 border-b-transparent"></div>
+                                            ${message}
+                                        </div>
+                                    </div>
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-semibold shadow-md flex-shrink-0">
+                                        ${userInitial}
+                                    </div>
                                 </div>
                             </div>`;
                         
@@ -291,5 +483,14 @@
             messagesDiv.scrollTop = messagesDiv.scrollHeight;
         }
     });
+
+    // Auto-resize textarea
+    const messageInput = document.querySelector('.message-input');
+    if (messageInput) {
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+    }
 </script>
-@endpush 
+@endpush
